@@ -1,5 +1,6 @@
 package org.dnf_calc_n.ui;
 
+import org.dnf_calc_n.Common;
 import org.dnf_calc_n.calculate.Terminal;
 import org.dnf_calc_n.data.LoadImage;
 import org.dnf_calc_n.data.LoadJob;
@@ -9,13 +10,9 @@ import org.json.simple.JSONObject;
 import java.awt.*;
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.util.Arrays;
 import java.util.HashMap;
 
 import javax.swing.border.LineBorder;
@@ -80,11 +77,17 @@ public class WindowMain extends JFrame {
                     showErrorDialog("커스텀 입력값 오류");
                     return;
                 }
-                if(calcTerminal.startCalculateSingle()){
+                if(calcTerminal.combineItemSingle()){
+                    System.out.println("오류: 데이터베이스 오류");
+                    showErrorDialog("데이터베이스 오류");
+                    return;
+                }
+                if(calcTerminal.startCalculationSingle()){
                     System.out.println("오류: 계산 오류");
                     showErrorDialog("계산 오류");
                     return;
                 }
+
             }).start();
         });
         mainPanel.add(calc_btn);

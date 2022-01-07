@@ -1,4 +1,4 @@
-package org.dnf_calc_n.ui;
+package org.dnf_calc_n;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -14,6 +14,33 @@ import java.io.*;
 import java.util.HashMap;
 
 public class Common {
+
+    public static String convertCodeToExplain(String code){
+        return switch (code) {
+            case "D" -> "데미지 증가";
+            case "DA" -> "데미지 추가 증가";
+            case "CD" -> "크리티컬 데미지 증가";
+            case "CDA" -> "크리티컬 데미지 추가 증가";
+            case "AD" -> "추가 데미지";
+            case "AED" -> "속성 추가 데미지";
+            case "TD" -> "모든 공격력 증가";
+            case "A" -> "물리, 마법, 독립공격력 증가";
+            case "AP" -> "물리, 마법, 독립공격력 % 증가";
+            case "S" -> "힘, 지능 증가";
+            case "SP" -> "힘, 지능 %증가";
+            case "E" -> "속성 강화 증가";
+            case "DD" -> "지속 피해";
+            case "SD" -> "스킬 공격력 증가";
+            case "CR" -> "크리티컬 확률 증가";
+            case "AS" -> "공격 속도 증가";
+            case "MS" -> "이동 속도 증가";
+            case "LVL" -> "스킬 레벨 증가";
+            case "LVD" -> "구간 스킬 공격력 증가";
+            case "CTD" -> "쿨타임 감소";
+            case "CRD" -> "쿨타임 회복 속도 증가";
+            default -> "오류";
+        };
+    }
 
     public static HashMap<String, Font> loadFont(){
         HashMap<String, Font> fontMap = new HashMap<>();
