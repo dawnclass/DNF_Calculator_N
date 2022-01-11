@@ -77,6 +77,11 @@ public class WindowMain extends JFrame {
                     showErrorDialog("커스텀 입력값 오류");
                     return;
                 }
+                if(calcTerminal.getJobData()){
+                    System.out.println("오류: 직업 데이터 누락");
+                    showErrorDialog("직업 데이터 누락");
+                    return;
+                }
                 if(calcTerminal.combineItemSingle()){
                     System.out.println("오류: 데이터베이스 오류");
                     showErrorDialog("데이터베이스 오류");
@@ -87,6 +92,12 @@ public class WindowMain extends JFrame {
                     showErrorDialog("계산 오류");
                     return;
                 }
+                if(calcTerminal.calculateJobDamageData()){
+                    System.out.println("오류: 직업 스킬별 데미지 계산 오류");
+                    showErrorDialog("직업 스킬별 데미지 계산 오류");
+                    return;
+                }
+                var result = calcTerminal.tranJobDamage();
 
             }).start();
         });

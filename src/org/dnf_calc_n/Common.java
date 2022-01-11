@@ -1,5 +1,6 @@
 package org.dnf_calc_n;
 
+import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -11,6 +12,9 @@ import java.awt.image.ImageFilter;
 import java.awt.image.ImageProducer;
 import java.awt.image.RGBImageFilter;
 import java.io.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
 public class Common {
@@ -97,6 +101,35 @@ public class Common {
             writer.close();
         }catch (IOException | ParseException e){
             e.printStackTrace();
+        }
+    }
+
+    public static void writeCSVFile(String jobName, Double[] tranArray){
+        LocalTime now = LocalTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH-mm-ss-SSS");
+        String time = now.format(formatter);
+        File csv = new File(jobName+" "+time+".csv");
+        BufferedWriter bw = null;
+        try{
+            bw = new BufferedWriter(new FileWriter(csv, true));
+
+            for (int i=0;i<tranArray.length;i++){
+                String aData = "";
+                aData = i + "," + tranArray[i];
+                bw.write(aData);
+                bw.newLine();
+            }
+        } catch (IOException e){
+            e.printStackTrace();
+        } finally {
+            try{
+                if(bw!=null){
+                    bw.flush();
+                    bw.close();
+                }
+            }catch (IOException e){
+                e.printStackTrace();
+            }
         }
     }
 
