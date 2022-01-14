@@ -13,6 +13,7 @@ import java.awt.image.ImageProducer;
 import java.awt.image.RGBImageFilter;
 import java.io.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -105,8 +106,8 @@ public class Common {
     }
 
     public static void writeCSVFile(String jobName, Double[] tranArray){
-        LocalTime now = LocalTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH-mm-ss-SSS");
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm-ss-SSS");
         String time = now.format(formatter);
         File csv = new File(jobName+" "+time+".csv");
         BufferedWriter bw = null;

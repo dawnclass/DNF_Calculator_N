@@ -11,7 +11,7 @@ import javax.swing.JTextField
 import kotlin.math.roundToInt
 
 
-class Terminal {
+class Terminal : Thread() {
 
     private var itemOptionJson : JSONObject
     private var itemNameJson : JSONObject
@@ -20,6 +20,10 @@ class Terminal {
         println("계산 시작")
         this.itemOptionJson = Common.loadJsonObject("resources/data/item_option.json")
         this.itemNameJson = Common.loadJsonObject("resources/data/item_name.json")
+    }
+
+    override fun run() {
+
     }
 
     private val requireParts: Array<String> = arrayOf("11", "12", "13", "14", "15", "21", "22", "23", "31", "32", "33")
@@ -92,6 +96,7 @@ class Terminal {
                 val nowField = fieldMap[key]
                 customs[key] = nowField?.text as String
             }
+            getEnvironmentData()
         }catch (e: NullPointerException){
             e.printStackTrace()
             return true
@@ -357,8 +362,8 @@ class Terminal {
                     (1 + (optionArrayMap["LVD"]!![index]) / 100.0)  * cDamageRatio *
                     (jobSkillRatioMap["DAMAGE"]!![name] ?: 1.0) * weaponDamageRatio
             var nowCoolTime = activeMap["coolTime"] as Double * finalCoolRatioArray[index] *
-                    (jobSkillRatioMap["COOL"]!![name] ?: 1.0) * weaponCoolTimeRatio
-            if(itemsNotDuplicated.contains("15140") && activeMap["slot"] != null){
+                    (jobSkillRatioMap["COOL"]!![name] ?: 1.0) * weaponCoolTimeRatio * envCoolDown
+            if(itemList.contains("15140") && activeMap["slot"] != null){
                 when(activeMap["slot"]){
                     1.0 -> {
                         nowDamage *= 1.55
@@ -381,6 +386,7 @@ class Terminal {
         return false
     }
 
+    lateinit var damageTranArray : Array<Double>
     fun tranJobDamage(): Boolean{
         //데미지 순으로 정렬
         val num = jobFinalResultMap.size
@@ -401,11 +407,11 @@ class Terminal {
         Arrays.sort(valueList, Comparator.comparingDouble { o1: Array<Double> -> -o1[0] })
         // valueList.forEach { e -> println(e.contentToString()) }
 
-        val damageTranArray = Array<Double>(1800){0.0}
+        damageTranArray = Array<Double>(maxTime){0.0}
         var finalDamage = 0.0
         val buffTimeMap = HashMap<String, Double>()
         var cannotTime = 0.0
-        for(time in 0 until 1800){
+        for(time in 0 until maxTime){
             //시간 지남
             cannotTime -= 0.1
             for(arr in valueList){
@@ -417,13 +423,13 @@ class Terminal {
             }
             damageTranArray[time] = finalDamage
             //딜레이 판정
-            if(cannotTime > 0) continue
+            if(cannotTime > 0 || tranDamageRatioArray[time][2]==0.0) continue
             //데미지 가능 시
             for(arr in valueList){
                 if(arr[6] >= 1){
                     arr[6] = arr[6] - 1
-                    finalDamage += arr[0] * if(time<400){1.0}else{0.6}
-                    cannotTime = arr[2] + arr[3] * 0.0  // TODO: 실전성 보정율이 들어가야함
+                    finalDamage += arr[0] * tranDamageRatioArray[time][0]
+                    cannotTime = arr[2] + (4-arr[3]) * tranDamageRatioArray[time][1] * proficiency
                     arr[4] = arr[1] + cannotTime * arr[8]
                     break
                 }
@@ -431,8 +437,34 @@ class Terminal {
         }
 
         println(damageTranArray.contentToString())
-        Common.writeCSVFile(jobName, damageTranArray)
+        // Common.writeCSVFile(jobName, damageTranArray)
         return false
+    }
+
+    private lateinit var tranDamageRatioArray : Array<Array<Double>>
+    private var proficiency = 0.5
+    private var maxTime = 1800
+    private var envCoolDown = 1.0
+    private fun getEnvironmentData(){
+        val env = customs["environment"]
+        proficiency = (customs["proficiency"] ?: "0.5").toDouble()
+        val environmentJson = Common.loadJsonObject("resources/data/environment.json") as JSONObject
+        val nowEnv = environmentJson[env] as JSONObject
+        maxTime = (nowEnv["maxTime"] as Number).toInt()
+        tranDamageRatioArray = Array(maxTime){arrayOf()}
+        envCoolDown = nowEnv["coolDown"] as Double
+        val envJsonArray = nowEnv["tran"] as JSONArray
+        for(i in 0 until envJsonArray.size){
+            val nowTimeJson = envJsonArray[i] as JSONObject
+            val timeArray = (nowTimeJson["time"] as String).split("-")
+            val damageRatio = nowTimeJson["damage"] as Double
+            val mobAttack = nowTimeJson["mobAttack"] as Double
+            val skillAllowed = if(nowTimeJson["skillAllowed"] as Boolean){1.0}else{0.0}
+            for(j in timeArray[0].toInt() until timeArray[1].toInt()){
+                tranDamageRatioArray[j] = arrayOf(damageRatio, mobAttack, skillAllowed)
+            }
+        }
+        // for((index, tran) in tranDamageRatioArray.withIndex()) println("$index="+tran.contentToString())
     }
 
 }

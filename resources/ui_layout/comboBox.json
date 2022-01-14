@@ -1,6 +1,0 @@
-{
-  "JComboBox" : [
-    {"text": "크리쳐", "list": ["크증18%", "모공15%"], "position": [10, 70], "tag": "creature"},
-    {"text": "칭호", "list": ["증뎀15%", "추뎀10%"], "position": [10, 40], "tag": "title"}
-  ]
-}
