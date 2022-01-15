@@ -142,10 +142,10 @@ public class WindowMain extends JFrame {
     }
 
     class ResultPanel extends JPanel{
-        Color[] colors = {Color.RED, Color.BLUE, Color.GREEN};
+        Color[] colors = {Color.RED, Color.BLUE, Color.GREEN, Color.ORANGE, Color.CYAN};
         ArrayList<Double[]> tranArrayList = new ArrayList<>();
         public void addTranArray(Double[] tranArray) {
-            if(tranArrayList.size() == 3) {
+            if(tranArrayList.size() == 5) {
                 showErrorDialog("표시 그래프 제한 초과");
             }else{tranArrayList.add(tranArray);}
         }
@@ -171,7 +171,7 @@ public class WindowMain extends JFrame {
             g.drawString((int)(max_y/2000000)+"M", 28, 150);
             g.drawString((int)(max_y/1000000)+"M", 28, 28);
             for(int i=0;i<tranArrayList.size();i++){
-                if(i==3) break;
+                if(i==5) break;
                 var nowTranArray = tranArrayList.get(i);
                 g.setColor(colors[i]);
                 for(int j=0;j<350;j++){

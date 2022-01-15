@@ -401,7 +401,8 @@ class Terminal : Thread() {
             valueList[index][5] = (activeMap["stack"] as Double?) ?: 1.0  // 최대 스택
             valueList[index][6] = valueList[index][5]  // 현재 스택
             valueList[index][7] = (activeMap["duration"] as Double?) ?: 0.0  // 지속 시간
-            valueList[index][8] = (activeMap["endCool"] as Double?) ?: 0.0  // 끝난후 쿨타임 여부
+            valueList[index][8] = 0.0  // 현재 지속시간
+            valueList[index][9] = (activeMap["endCool"] as Double?) ?: 0.0  // 끝난후 쿨타임 여부
             index ++
         }
         Arrays.sort(valueList, Comparator.comparingDouble { o1: Array<Double> -> -o1[0] })
@@ -412,25 +413,33 @@ class Terminal : Thread() {
         val buffTimeMap = HashMap<String, Double>()
         var cannotTime = 0.0
         for(time in 0 until maxTime){
+            damageTranArray[time] = finalDamage
             //시간 지남
             cannotTime -= 0.1
             for(arr in valueList){
                 arr[4] -= 0.1
+                arr[8] -= 0.1
                 if(arr[4] <= 0 && arr[6] < arr[5]){
                     arr[6] = arr[6] + 1
                     arr[4] = arr[1]
                 }
+                if(arr[8] > 0){
+                    finalDamage += arr[0] / arr[7] / 10.0 * tranDamageRatioArray[time][0]
+                }
             }
-            damageTranArray[time] = finalDamage
             //딜레이 판정
             if(cannotTime > 0 || tranDamageRatioArray[time][2]==0.0) continue
             //데미지 가능 시
             for(arr in valueList){
                 if(arr[6] >= 1){
                     arr[6] = arr[6] - 1
-                    finalDamage += arr[0] * tranDamageRatioArray[time][0]
+                    if(arr[7] == 0.0){
+                        finalDamage += arr[0] * tranDamageRatioArray[time][0]
+                    }else{
+                        arr[8] = arr[7]
+                    }
                     cannotTime = arr[2] + (4-arr[3]) * tranDamageRatioArray[time][1] * proficiency
-                    arr[4] = arr[1] + cannotTime * arr[8]
+                    arr[4] = arr[1] + cannotTime * arr[9]
                     break
                 }
             }
@@ -447,7 +456,7 @@ class Terminal : Thread() {
     private var envCoolDown = 1.0
     private fun getEnvironmentData(){
         val env = customs["environment"]
-        proficiency = (customs["proficiency"] ?: "0.5").toDouble()
+        proficiency = 1.0 - (customs["proficiency"] ?: "0.5").toDouble()
         val environmentJson = Common.loadJsonObject("resources/data/environment.json") as JSONObject
         val nowEnv = environmentJson[env] as JSONObject
         maxTime = (nowEnv["maxTime"] as Number).toInt()
