@@ -15,6 +15,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -23,6 +25,7 @@ import javax.swing.border.LineBorder;
 public class WindowMain extends JFrame {
 
     HashMap<String, Font> fontMap;
+    Common common = new Common();
 
     JPanel mainPanel;
     HashMap<String, JButton> btnMap = new HashMap<>();
@@ -46,10 +49,17 @@ public class WindowMain extends JFrame {
 
     static Double[] resultGraph;
     public WindowMain() {
+        System.setProperty("file.encoding","UTF-8");
+        try{
+            Field charset = Charset.class.getDeclaredField("defaultCharset");
+            charset.setAccessible(true);
+            charset.set(null,null);
+        }
+        catch(Exception ignored){}
         var loadImage = new LoadImage();
         itemImgMap = loadImage.loadAllImageItem();
         extraImgMap = loadImage.loadAllImageExtra();
-        fontMap = Common.loadFont();
+        fontMap = common.loadFont();
         setResizable(false);
         setTitle("에픽조합계산기 2.0.0");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -191,8 +201,8 @@ public class WindowMain extends JFrame {
 
 
     private void createCustomSection(){
-        var cacheJson = Common.loadJsonObject("cache/selected.json");
-        var jsonWidget = Common.loadJsonObject("resources/ui_layout/widget.json");
+        var cacheJson = common.loadJsonObject("cache/selected.json");
+        var jsonWidget = common.loadJsonObject("resources/ui_layout/widget.json");
         var jsonCombo = (JSONArray) jsonWidget.get("JComboBox");
         var jsonField = (JSONArray) jsonWidget.get("JTextField");
         JSONArray jsonAdded = new JSONArray();
@@ -233,7 +243,7 @@ public class WindowMain extends JFrame {
                 nowCombo.setSelectedItem(cacheValue);
                 nowCombo.addItemListener(e -> {
                     if (e.getStateChange() == ItemEvent.SELECTED) {
-                        Common.saveCacheData("selected", tag, (String) nowCombo.getSelectedItem());
+                        common.saveCacheData("selected", tag, (String) nowCombo.getSelectedItem());
                     }
                 });
                 comboBoxMap.put(tag, nowCombo);
@@ -252,7 +262,7 @@ public class WindowMain extends JFrame {
                     public void keyPressed(KeyEvent e) {}
                     @Override
                     public void keyReleased(KeyEvent e) {
-                        Common.saveCacheData("selected", tag, (String) nowField.getText());
+                        common.saveCacheData("selected", tag, (String) nowField.getText());
                     }
                 });
                 fieldMap.put(tag, nowField);
@@ -269,7 +279,7 @@ public class WindowMain extends JFrame {
         customPanel.setLayout(null);
         customPanel.setBounds(420, 70, 550, 135);
         mainPanel.add(customPanel);
-        var json = Common.loadJsonObject("cache/selected.json");
+        var json = common.loadJsonObject("cache/selected.json");
 
         var nowLabel = new JLabel();
         nowLabel.setText(" 직업");
@@ -306,7 +316,7 @@ public class WindowMain extends JFrame {
                 jobCombo.removeAllItems();
                 for(String job : jobArray) jobCombo.insertItemAt(job, jobCombo.getItemCount());
                 jobCombo.setSelectedIndex(0);
-                Common.saveCacheData("selected", "jobType", jobType);
+                common.saveCacheData("selected", "jobType", jobType);
             }
         });
         String nowJobType = (String) json.get("jobType");
@@ -318,7 +328,7 @@ public class WindowMain extends JFrame {
             if(e.getStateChange() == ItemEvent.SELECTED){
                 var job = (String) jobCombo.getSelectedItem();
                 // System.out.println(job);
-                Common.saveCacheData("selected", "job", job);
+                common.saveCacheData("selected", "job", job);
             }
         });
         String nowJob = (String) json.get("job");
@@ -337,7 +347,7 @@ public class WindowMain extends JFrame {
         itemPanel.setLayout(null);
         itemPanel.setBounds(10, 70, 400, 500);
         mainPanel.add(itemPanel);
-        var json = Common.loadJsonObject("resources/ui_layout/item.json");
+        var json = common.loadJsonObject("resources/ui_layout/item.json");
 
         var jsonPosition = (JSONArray) json.get("position");
         var start_x = ((Number) jsonPosition.get(0)).intValue();
@@ -362,7 +372,7 @@ public class WindowMain extends JFrame {
                 borderRGB = new int[]{102, 0, 80, 255, 0, 200};
             }
             btnNow.setBorder(new LineBorder(new Color(borderRGB[0], borderRGB[1], borderRGB[2]), 1));
-            btnNow.setIcon(Common.changeBright(mainPanel, itemImgMap.get(code), 0.4));
+            btnNow.setIcon(common.changeBright(mainPanel, itemImgMap.get(code), 0.4));
             btnNow.addActionListener(e -> {
                 toggleItemButton(code, btnNow, true, borderRGB);  // 중복체크 금지
                     /*  중복 체크 허용시
@@ -403,7 +413,7 @@ public class WindowMain extends JFrame {
         }
         if (itemToggleMap.get(code)) {
             button.setBorder(new LineBorder(new Color(RGB[0], RGB[1], RGB[2]), 1));
-            button.setIcon(Common.changeBright(button, itemImgMap.get(code), 0.4));
+            button.setIcon(common.changeBright(button, itemImgMap.get(code), 0.4));
             isPartExist.remove(part);
         } else {
             button.setBorder(new LineBorder(new Color(RGB[3], RGB[4], RGB[5]), 1));

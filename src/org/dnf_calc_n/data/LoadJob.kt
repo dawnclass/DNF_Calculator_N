@@ -5,6 +5,7 @@ import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
 import java.io.BufferedReader
 import java.io.FileReader
+import java.io.InputStreamReader
 
 class LoadJob {
 
@@ -14,6 +15,7 @@ class LoadJob {
         val parser = JSONParser()
         val reader = BufferedReader(FileReader("resources/ui_layout/job.json"))
         val json = parser.parse(reader) as JSONObject
+        // println(json.toJSONString())
 
         val jobTypes = json["jobTypes"] as JSONArray
         val types = Array(jobTypes.size) { "" }

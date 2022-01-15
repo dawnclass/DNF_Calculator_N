@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 public class Common {
 
-    public static String convertCodeToExplain(String code){
+    public String convertCodeToExplain(String code){
         return switch (code) {
             case "D" -> "데미지 증가";
             case "DA" -> "데미지 추가 증가";
@@ -47,7 +47,7 @@ public class Common {
         };
     }
 
-    public static HashMap<String, Font> loadFont(){
+    public HashMap<String, Font> loadFont(){
         HashMap<String, Font> fontMap = new HashMap<>();
         fontMap.put("small", new Font("맑은 고딕", Font.PLAIN, 10));
         fontMap.put("normal", new Font("맑은 고딕", Font.PLAIN, 12));
@@ -57,18 +57,17 @@ public class Common {
         return fontMap;
     }
 
-    public static JSONObject loadJsonObject(String fileStr){
+    public JSONObject loadJsonObject(String fileStr){
         try{
             var parser = new JSONParser();
-            var reader = new BufferedReader(new FileReader(fileStr));
-            return (JSONObject) parser.parse(reader);
-        } catch (IOException | ParseException e){
+            return (JSONObject) parser.parse(new BufferedReader(new FileReader(fileStr)));
+        } catch (IOException | ParseException | NullPointerException e){
             e.printStackTrace();
             return null;
         }
     }
 
-    public static ImageIcon changeBright(
+    public ImageIcon changeBright(
             JComponent component, ImageIcon im, double brightness
     ){
         try{
@@ -90,22 +89,24 @@ public class Common {
         }
     }
 
-    public static void saveCacheData(String file, String key, String value){
+    public void saveCacheData(String file, String key, String value){
+
         try{
             var parser = new JSONParser();
             var reader = new BufferedReader(new FileReader("cache/"+file+".json"));
             var json = (JSONObject) parser.parse(reader);
             json.put(key, value);
+
             var writer = new BufferedWriter(new FileWriter("cache/"+file+".json"));
             writer.write(json.toJSONString());
             writer.flush();
             writer.close();
-        }catch (IOException | ParseException e){
+        }catch (IOException | ParseException | NullPointerException e){
             e.printStackTrace();
         }
     }
 
-    public static void writeCSVFile(String jobName, Double[] tranArray){
+    public void writeCSVFile(String jobName, Double[] tranArray){
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm-ss-SSS");
         String time = now.format(formatter);

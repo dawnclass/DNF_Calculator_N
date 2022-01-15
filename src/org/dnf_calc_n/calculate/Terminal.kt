@@ -15,11 +15,12 @@ class Terminal : Thread() {
 
     private var itemOptionJson : JSONObject
     private var itemNameJson : JSONObject
+    private val common = Common()
 
     init {
         println("계산 시작")
-        this.itemOptionJson = Common.loadJsonObject("resources/data/item_option.json")
-        this.itemNameJson = Common.loadJsonObject("resources/data/item_name.json")
+        this.itemOptionJson = common.loadJsonObject("resources/data/item_option.json")
+        this.itemNameJson = common.loadJsonObject("resources/data/item_name.json")
     }
 
     override fun run() {
@@ -112,7 +113,7 @@ class Terminal : Thread() {
         val jobType = customs["jobType"] ?: return true
         val job = customs["job"] ?: return true
         jobName = "$jobType-$job"
-        jobJson = Common.loadJsonObject("resources/data/job/$jobType-$job.json") ?: return true
+        jobJson = common.loadJsonObject("resources/data/job/$jobType-$job.json") ?: return true
         val jobJsonActive = jobJson["active"] as JSONArray
         for(i in 0 until jobJsonActive.size){
             val active = jobJsonActive[i] as JSONObject
@@ -446,7 +447,7 @@ class Terminal : Thread() {
         }
 
         println(damageTranArray.contentToString())
-        // Common.writeCSVFile(jobName, damageTranArray)
+        // common.writeCSVFile(jobName, damageTranArray)
         return false
     }
 
@@ -457,7 +458,7 @@ class Terminal : Thread() {
     private fun getEnvironmentData(){
         val env = customs["environment"]
         proficiency = 1.0 - (customs["proficiency"] ?: "0.5").toDouble()
-        val environmentJson = Common.loadJsonObject("resources/data/environment.json") as JSONObject
+        val environmentJson = common.loadJsonObject("resources/data/environment.json") as JSONObject
         val nowEnv = environmentJson[env] as JSONObject
         maxTime = (nowEnv["maxTime"] as Number).toInt()
         tranDamageRatioArray = Array(maxTime){arrayOf()}
