@@ -15,10 +15,13 @@ import javax.swing.border.EmptyBorder;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Set;
 
 import javax.swing.border.LineBorder;
 
@@ -28,6 +31,7 @@ public class WindowMain extends JFrame {
     Common common = new Common();
 
     JPanel mainPanel;
+    JSONObject cacheJson;
     HashMap<String, JButton> btnMap = new HashMap<>();
     HashMap<String, JComboBox<String>> comboBoxMap = new HashMap<>();
     HashMap<String, JTextField> fieldMap = new HashMap<>();
@@ -57,6 +61,7 @@ public class WindowMain extends JFrame {
         }
         catch(Exception ignored){}
         var loadImage = new LoadImage();
+        cacheJson = common.loadJsonObject("cache/selected.json");
         itemImgMap = loadImage.loadAllImageItem();
         extraImgMap = loadImage.loadAllImageExtra();
         fontMap = common.loadFont();
@@ -74,6 +79,7 @@ public class WindowMain extends JFrame {
         createJobSection(); // 직업 영역 생성
         createCustomSection(); // 커스텀 영역 생성 (직업과 패널 공유)
         createResultSection(); // 결과 영역 생성
+        createWeaponSection(); // 무기 영역 생성
 
         var calc_btn = new JButton();
         calc_btn.setBackground(new Color(34, 32, 37));  // 배경색과 동일
@@ -124,6 +130,32 @@ public class WindowMain extends JFrame {
             calcThread.start();
         });
         mainPanel.add(calc_btn);
+    }
+
+    private void createWeaponSection(){
+        var itemJson = common.loadJsonObject("resources/data/item_name.json");
+        Set<String> itemList = itemJson.keySet();
+        var weaponList = new ArrayList<String>();
+        for(String code : itemList){
+            if(code.length()==6) weaponList.add((String)((JSONObject)itemJson.get(code)).get("name"));
+        }
+        var weaponArray = new String[weaponList.size()];
+        weaponList.forEach(e -> weaponArray[weaponList.indexOf(e)] = e);
+        // System.out.println(Arrays.toString(weaponArray));
+        var weaponSelect = new JComboBox<String>(weaponArray);
+        weaponSelect.setBounds(75, 25, 250, 20);
+        weaponSelect.setFont(fontMap.get("normal"));
+        String cacheValue;
+        cacheValue = (String) cacheJson.get("weapon");
+        // System.out.println(tag + cacheValue);
+        weaponSelect.setSelectedItem(cacheValue);
+        weaponSelect.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                common.saveCacheData("selected", "weapon", (String) weaponSelect.getSelectedItem());
+            }
+        });
+        comboBoxMap.put("weapon", weaponSelect);
+        mainPanel.add(weaponSelect);
 
     }
 
@@ -201,7 +233,6 @@ public class WindowMain extends JFrame {
 
 
     private void createCustomSection(){
-        var cacheJson = common.loadJsonObject("cache/selected.json");
         var jsonWidget = common.loadJsonObject("resources/ui_layout/widget.json");
         var jsonCombo = (JSONArray) jsonWidget.get("JComboBox");
         var jsonField = (JSONArray) jsonWidget.get("JTextField");
