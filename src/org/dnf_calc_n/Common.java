@@ -1,6 +1,7 @@
 package org.dnf_calc_n;
 
 import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -90,13 +91,27 @@ public class Common {
     }
 
     public void saveCacheData(String file, String key, String value){
-
         try{
             var parser = new JSONParser();
             var reader = new BufferedReader(new FileReader("cache/"+file+".json"));
             var json = (JSONObject) parser.parse(reader);
-            json.put(key, value);
-
+            if(key.equals("equipments")){
+                JSONArray equipmentArray;
+                try{
+                    equipmentArray = (JSONArray) json.get("equipments");
+                    if(equipmentArray.contains(value)){
+                        equipmentArray.remove(value);
+                    }else{
+                        equipmentArray.add(value);
+                    }
+                }catch (NullPointerException | ClassCastException e){
+                    equipmentArray = new JSONArray();
+                    equipmentArray.add(value);
+                }
+                json.put("equipments", equipmentArray);
+            }else{
+                json.put(key, value);
+            }
             var writer = new BufferedWriter(new FileWriter("cache/"+file+".json"));
             writer.write(json.toJSONString());
             writer.flush();

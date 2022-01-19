@@ -8,10 +8,11 @@ import java.util.function.ToDoubleFunction
 import java.util.function.ToIntFunction
 import javax.swing.JComboBox
 import javax.swing.JTextField
+import kotlin.collections.HashMap
 import kotlin.math.roundToInt
 
 
-class Terminal : Thread() {
+class Terminal {
 
     private var itemOptionJson : JSONObject
     private var itemNameJson : JSONObject
@@ -23,11 +24,7 @@ class Terminal : Thread() {
         this.itemNameJson = common.loadJsonObject("resources/data/item_name.json")
     }
 
-    override fun run() {
-
-    }
-
-    private val requireParts: Array<String> = arrayOf("11", "12", "13", "14", "15", "21", "22", "23", "31", "32", "33")
+    private val requireParts: Array<String> = arrayOf("111", "11", "12", "13", "14", "15", "21", "22", "23", "31", "32", "33")
     private val items = HashMap<String, ArrayList<String>>()
     private val itemsNotDuplicated = ArrayList<String>()  // 단일 선택 모드일때
     fun getItemData(itemMap: HashMap<String, Boolean>) : Boolean {
@@ -35,7 +32,7 @@ class Terminal : Thread() {
         for (key in itemMap.keys){
             if(itemMap[key] == true){
                 itemsNotDuplicated.add(key)
-                //무기제외
+                //무기
                 if(key.length == 6){
                     try{
                         items["111"]!!.add(key)
@@ -59,6 +56,21 @@ class Terminal : Thread() {
                         }
                     }
                 }
+            }
+        }
+        // TODO: 커스텀 값으로 무기를 바꾸는 초기 버전
+        val weaponName = customs["weapon"] ?: return true
+        itemNameJson.forEach { (k, v) ->
+            val vJson = v as JSONObject
+            val name = vJson["name"]
+            if(name == weaponName){
+                itemsNotDuplicated.add(k as String)
+            }
+            try{
+                items["111"]!!.add(k as String)
+            }catch (e: NullPointerException){
+                items["111"] = ArrayList()
+                items["111"]!!.add(k as String)
             }
         }
         for(part in requireParts){
@@ -102,13 +114,14 @@ class Terminal : Thread() {
             e.printStackTrace()
             return true
         }
-        //println(customs.toString())
+        // println(customs.toString())
         return false
     }
 
     private lateinit var jobName : String
     private lateinit var jobJson : JSONObject
     private val jobActiveMap = HashMap<String, HashMap<String, Any>>()
+    private val jobPreSkillMap = HashMap<String, String>()
     fun getJobData(): Boolean{
         val jobType = customs["jobType"] ?: return true
         val job = customs["job"] ?: return true
@@ -131,6 +144,9 @@ class Terminal : Thread() {
                     nowMap[key] = ((active[key] ?: continue) as Number).toInt()
                 }else{
                     nowMap[key] = (active[key] ?: continue) as Any
+                    if(key == "preSkill"){
+                        jobPreSkillMap[key] = active[key] as String
+                    }
                 }
             }
             if(talismanSlot != 0.0){
@@ -143,7 +159,7 @@ class Terminal : Thread() {
             val name = nowMap["name"] as String
             jobActiveMap[name] = nowMap
         }
-
+        //println(jobPreSkillMap.toString())
         //println(jobActiveMap)
         return false
     }
@@ -158,7 +174,6 @@ class Terminal : Thread() {
     var optionArrayMap = HashMap<String, Array<Double>>()
     fun combineItemSingle(): Boolean{
         addSetOptionSingle()
-        itemsNotDuplicated.add("111002") // 바드나후
         // println("itemsNotDuplicated = $itemsNotDuplicated")
 
         optionValueMap = HashMap<String, Double>()

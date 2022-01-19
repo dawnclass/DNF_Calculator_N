@@ -88,14 +88,14 @@ public class WindowMain extends JFrame {
         calc_btn.addActionListener(e -> {
             Terminal calcTerminal = new Terminal();
             Thread calcThread = new Thread(() -> {
-                if(calcTerminal.getItemData(itemToggleMap)) {
-                    System.out.println("오류: 미선택 부위 있음 or 신화 중복 체크");
-                    showErrorDialog("미선택 부위 있음 or 신화 중복 체크");
-                    return;
-                }
                 if(calcTerminal.getCustomData(comboBoxMap, fieldMap)){
                     System.out.println("오류: 커스텀 입력값 오류");
                     showErrorDialog("커스텀 입력값 오류");
+                    return;
+                }
+                if(calcTerminal.getItemData(itemToggleMap)) {
+                    System.out.println("오류: 미선택 부위 있음 or 신화 중복 체크");
+                    showErrorDialog("미선택 부위 있음 or 신화 중복 체크");
                     return;
                 }
                 if(calcTerminal.getJobData()){
@@ -379,6 +379,12 @@ public class WindowMain extends JFrame {
         itemPanel.setBounds(10, 70, 400, 500);
         mainPanel.add(itemPanel);
         var json = common.loadJsonObject("resources/ui_layout/item.json");
+        JSONArray jsonCache;
+        try{
+            jsonCache = (JSONArray) cacheJson.get("equipments");
+        } catch (NullPointerException | ClassCastException e){
+            jsonCache = new JSONArray();
+        }
 
         var jsonPosition = (JSONArray) json.get("position");
         var start_x = ((Number) jsonPosition.get(0)).intValue();
@@ -394,7 +400,6 @@ public class WindowMain extends JFrame {
             var position_x = ((Number) position.get(1)).intValue();
 
             var btnNow = new JButton();
-            itemToggleMap.put(code, false);
             btnNow.setBackground(new Color(34, 32, 37));  // 배경색과 동일
             int[] borderRGB;
             if(!code.endsWith("1")){  // 테두리 색
@@ -402,11 +407,19 @@ public class WindowMain extends JFrame {
             }else{
                 borderRGB = new int[]{102, 0, 80, 255, 0, 200};
             }
-            btnNow.setBorder(new LineBorder(new Color(borderRGB[0], borderRGB[1], borderRGB[2]), 1));
-            btnNow.setIcon(common.changeBright(mainPanel, itemImgMap.get(code), 0.4));
+            if(jsonCache.contains(code)){
+                isPartExist.put(code.substring(0, 2), code);
+                itemToggleMap.put(code, true);
+                btnNow.setBorder(new LineBorder(new Color(borderRGB[3], borderRGB[4], borderRGB[5]), 1));
+                btnNow.setIcon(common.changeBright(mainPanel, itemImgMap.get(code), 1.0));
+            } else {
+                itemToggleMap.put(code, false);
+                btnNow.setBorder(new LineBorder(new Color(borderRGB[0], borderRGB[1], borderRGB[2]), 1));
+                btnNow.setIcon(common.changeBright(mainPanel, itemImgMap.get(code), 0.4));
+            }
             btnNow.addActionListener(e -> {
                 toggleItemButton(code, btnNow, true, borderRGB);  // 중복체크 금지
-                    /*  중복 체크 허용시
+                    /*  TODO: 중복 체크 허용시
                     if (itemToggleMap.get(code)) {
                         btnNow.setBorder(new LineBorder(new Color(RGB[0], RGB[1], RGB[2]), 1));
                         btnNow.setIcon(Common.changeBright(btnNow, itemImgMap.get(code), 0.4));
@@ -414,6 +427,7 @@ public class WindowMain extends JFrame {
                         btnNow.setBorder(new LineBorder(new Color(RGB[3], RGB[4], RGB[5]), 1));
                         btnNow.setIcon(itemImgMap.get(code));
                     }
+                    common.saveCacheData("selected", "equipments", code);
                     itemToggleMap.put(code, !itemToggleMap.get(code));
                     */
                 // System.out.println(code + " = " + itemToggleMap.get(code));
@@ -426,9 +440,10 @@ public class WindowMain extends JFrame {
         }
     }
 
-    // 중복 체크를 금지할 경우
+    // TODO: 중복 체크를 금지할 경우
     HashMap<String, String> isPartExist = new HashMap<>();
     private void toggleItemButton(String code, JButton button, boolean isCreate, int[] RGB){
+        common.saveCacheData("selected", "equipments", code);
         var part = code.substring(0, 2);
         if(isCreate && isPartExist.get(part) != null){
             var existCode = isPartExist.get(part);
