@@ -50,8 +50,10 @@ public class Common {
 
     public HashMap<String, Font> loadFont(){
         HashMap<String, Font> fontMap = new HashMap<>();
+        fontMap.put("very_small", new Font("맑은 고딕", Font.PLAIN, 8));
         fontMap.put("small", new Font("맑은 고딕", Font.PLAIN, 10));
         fontMap.put("normal", new Font("맑은 고딕", Font.PLAIN, 12));
+        fontMap.put("normal_bold", new Font("맑은 고딕", Font.BOLD, 12));
         fontMap.put("bold", new Font("맑은 고딕", Font.BOLD, 14));
         fontMap.put("large", new Font("맑은 고딕", Font.BOLD, 18));
         fontMap.put("huge", new Font("맑은 고딕", Font.BOLD, 24));
@@ -66,6 +68,20 @@ public class Common {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public int changeBright(int color, double brightness){
+        int r = color / (256*256);
+        int g = (color / 256)%256;
+        int b = color % 256;
+        //System.out.println("전 r="+r+" g="+g+" b="+b);
+
+        r = (int)(r * brightness);
+        g = (int)(g * brightness);
+        b = (int)(b * brightness);
+        //System.out.println("후 r="+r+" g="+g+" b="+b);
+
+        return r*256*256 + g * 256 + b;
     }
 
     public ImageIcon changeBright(

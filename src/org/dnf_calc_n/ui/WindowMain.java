@@ -66,7 +66,7 @@ public class WindowMain extends JFrame {
         extraImgMap = loadImage.loadAllImageExtra();
         fontMap = common.loadFont();
         setResizable(false);
-        setTitle("에픽조합계산기 2.0.0");
+        setTitle("에픽조합계산기N 0.1.1");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 1024, 720);
         mainPanel = new JPanel();
