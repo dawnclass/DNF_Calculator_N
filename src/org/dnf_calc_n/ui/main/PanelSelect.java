@@ -2,6 +2,7 @@ package org.dnf_calc_n.ui.main;
 
 import org.dnf_calc_n.Common;
 import org.dnf_calc_n.calculate.Buff;
+import org.dnf_calc_n.calculate.Damage;
 import org.dnf_calc_n.ui.component.RoundButton;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -24,6 +25,7 @@ public class PanelSelect extends JPanel {
 
     Common common = new Common();
     Buff buff;
+    Damage damage;
     HashMap<String, Font> mapFont;
     HashMap<String, ImageIcon> mapIconItem;
     HashMap<String, JButton> mapInfoButtons;
@@ -35,21 +37,24 @@ public class PanelSelect extends JPanel {
     JPanel panelFilter;
     JPanel panelSelectItem;
     JScrollPane scrollPane;
-    private final ArrayList<String> listEquipment = new ArrayList<>();
+    private final ArrayList<Equipment> listEquipment = new ArrayList<>();
     JSONObject equipmentData;
     Color bgColor = new Color(50, 46, 52);
     Color sectionColor = new Color(34, 32, 37);
     JLabel labelNowName, labelNowExplain;
 
+    String selectedMyth = "";
+
     public PanelSelect(
             JPanel root, PanelResult panelResult,
             JSONObject equipmentData, HashMap<String, ImageIcon> mapIconItem,
             PanelInfo panelInfo,
-            Buff buff
+            Buff buff, Damage damage
     ){
         this.panelResult = panelResult;
         mapFont = common.loadFont();
         this.buff = buff;
+        this.damage = damage;
         this.panelInfo = panelInfo;
         this.mapInfoButtons = panelInfo.getMapInfoButtons();
         this.mapIconItem = mapIconItem;
@@ -200,7 +205,7 @@ public class PanelSelect extends JPanel {
             border = 1;
         }
         for(int i=0;i<len;i++){
-            String code = listEquipment.get(i);
+            String code = listEquipment.get(i).toString();
             var btnNow = new JButton();
             btnNow.setBackground(new Color(34, 32, 37));
             btnNow.setIcon(mapIconItem.get(code));
@@ -218,22 +223,22 @@ public class PanelSelect extends JPanel {
                         StringBuilder nowExplain = new StringBuilder();
                         nowExplain.append("<html>");
                         JSONObject nowItem = (JSONObject) equipmentData.get(code);
-                        labelNowName.setText((String)nowItem.get("name"));
+                        labelNowName.setText((String)nowItem.get("이름"));
 
-                        nowExplain.append((String) nowItem.get("part")).append(" / ");
-                        JSONArray themeArray = (JSONArray)nowItem.get("theme");
+                        nowExplain.append((String) nowItem.get("부위")).append(" / ");
+                        JSONArray themeArray = (JSONArray)nowItem.get("테마");
                         for (Object o : themeArray) {
                             nowExplain.append(o).append(" ");
                         }
                         nowExplain.append("<br>피증 : ");
-                        JSONArray damageArray = (JSONArray)nowItem.get("upDamage");
+                        JSONArray damageArray = (JSONArray)nowItem.get("옵션피증");
                         for (Object o : damageArray) {
                             Double oo = (Double) o;
                             nowExplain.append(oo.intValue()).append(" ");
                         }
                         nowExplain.append("<br>버프 : ");
                         //nowExplain.append(((Double)nowItem.get("basicBuff")).intValue()).append(" / ");
-                        JSONArray buffArray = (JSONArray)nowItem.get("upBuff");
+                        JSONArray buffArray = (JSONArray)nowItem.get("옵션버프");
                         for (Object o : buffArray) {
                             Double oo = (Double) o;
                             nowExplain.append(oo.intValue()).append(" ");
@@ -246,6 +251,20 @@ public class PanelSelect extends JPanel {
                 @Override
                 public void mouseReleased(MouseEvent e){
                     // System.out.println("눌림 : "+code);
+                    if(code.length()!=6 && "1".equals(code.substring(code.length()-1))){
+                        String nowPart = code.substring(0, 2);
+                        if(!nowPart.equals(selectedMyth) && !"".equals(selectedMyth)){
+                            JLabel alertLabel = new JLabel("신화 중복 선택");
+                            alertLabel.setFont(mapFont.get("bold"));
+                            JOptionPane.showMessageDialog(
+                                    null, alertLabel, "오류",
+                                    JOptionPane.ERROR_MESSAGE
+                            );
+                            return;
+                        }else{
+                            selectedMyth = nowPart;
+                        }
+                    }
                     panelInfo.setEquipment(code);
                     boolean isBuff = buff.startBuffCalculate(panelInfo.getMapEquipments());
                     if(isBuff){
@@ -254,6 +273,8 @@ public class PanelSelect extends JPanel {
                         panelResult.setBuffResult(mapResultBuff);
                     }else{
                         System.out.println("딜러 계산 시작");
+                        damage.startDamageCalculate(panelInfo.getMapEquipments());
+
                     }
 
                     panelInfo.updateInfo();
@@ -344,12 +365,12 @@ public class PanelSelect extends JPanel {
                 if(!code.startsWith(selectedTag)) continue;  // 부위 필터
 
                 JSONObject nowItemJson = (JSONObject) equipmentData.get(code);
-                String name = (String) nowItemJson.get("name");
+                String name = (String) nowItemJson.get("이름");
                 if(!"".equals(containText) && !name.contains(containText)) continue;  // 이름 필터
 
                 if(themeTag.size() != 0){
                     boolean isContain = false;
-                    JSONArray themeArray = (JSONArray) nowItemJson.get("theme");
+                    JSONArray themeArray = (JSONArray) nowItemJson.get("테마");
                     for(Object t : themeArray){
                         String theme = (String) t;
                         if (themeTag.contains(theme)) {
@@ -360,7 +381,7 @@ public class PanelSelect extends JPanel {
                     if(!isContain) continue; // 테마 필터 (OR식)
                 }
 
-                listEquipment.add(code);
+                listEquipment.add(new Equipment(code));
 
             }catch (Exception ignored){}
         }
@@ -369,4 +390,30 @@ public class PanelSelect extends JPanel {
         //System.out.println(listEquipment);
     }
 
+}
+
+class Equipment implements Comparable<Equipment>{
+
+    private String code;
+    private int num;
+
+    public Equipment(String code){
+        this.code = code;
+        num = Integer.parseInt(code.substring(code.length()-1));
+    }
+
+    @Override
+    public int compareTo(Equipment equipment) {
+        if(equipment.num < num){
+            return 1;
+        } else if (equipment.num > num){
+            return -1;
+        }
+        return 0;
+    }
+
+    @Override
+    public String toString(){
+        return code;
+    }
 }

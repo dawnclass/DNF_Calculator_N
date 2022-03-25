@@ -83,10 +83,10 @@ class Buff(private var equipmentData: JSONObject) {
     private fun loadEquipmentData (){
         for(code in arrayEquipment){
             val nowJson : JSONObject = (equipmentData[code] ?: continue) as JSONObject
-            basicBuff += (nowJson["basicBuff"] ?: 0.0) as Double
-            upLvBless += (nowJson["blessLv"] ?: 0.0) as Double
-            upLvCrux += (nowJson["cruxLv"] ?: 0.0) as Double
-            val upBuff : JSONArray = nowJson["upBuff"] as JSONArray
+            basicBuff += (nowJson["기초버프"] ?: 0.0) as Double
+            upLvBless += (nowJson["축렙"] ?: 0.0) as Double
+            upLvCrux += (nowJson["각렙"] ?: 0.0) as Double
+            val upBuff : JSONArray = nowJson["옵션버프"] as JSONArray
             for(i in 0 until upBuff.size){
                 arrayUpBuff[i] += upBuff[i] as Double
             }

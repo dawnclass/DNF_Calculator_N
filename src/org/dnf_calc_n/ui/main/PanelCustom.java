@@ -49,7 +49,13 @@ public class PanelCustom extends JPanel {
         String[] jobTypes = mapJob.get("types");
         // System.out.println(Arrays.toString(jobTypes));
 
-        var jobCombo = new JComboBox<>(mapJob.get("버퍼"));
+        String nowJobType = "";
+        try{
+            nowJobType = (String) json.get("jobType");
+        }catch (Exception e){
+            nowJobType = "귀검사(여)";
+        }
+        var jobCombo = new JComboBox<>(mapJob.get(nowJobType));
         jobCombo.setBounds(60, 40, 110, 20);
         jobCombo.setFont(mapFont.get("normal"));
 
@@ -68,8 +74,7 @@ public class PanelCustom extends JPanel {
                 common.saveCacheData("selected", "jobType", jobType);
             }
         });
-        String nowJobType = (String) json.get("jobType");
-        // System.out.println(nowJobType);
+        //System.out.println(nowJobType);
         jobTypeCombo.setSelectedItem(nowJobType);
         // System.out.println(jobCombo.getItemCount());
         // 초기 타입 설정 후 리스너 적용
@@ -80,8 +85,13 @@ public class PanelCustom extends JPanel {
                 common.saveCacheData("selected", "job", job);
             }
         });
-        String nowJob = (String) json.get("job");
-        // System.out.println(nowJob);
+        String nowJob = "";
+        try{
+            nowJob = (String) json.get("job");
+        }catch (Exception e){
+            nowJob = "소드마스터";
+        }
+        //System.out.println(nowJob);
         jobCombo.setSelectedItem(nowJob);
         customPanel.add(jobTypeCombo);
         customPanel.add(jobCombo);

@@ -2,6 +2,7 @@ package org.dnf_calc_n.ui.main;
 
 import org.dnf_calc_n.Common;
 import org.dnf_calc_n.calculate.Buff;
+import org.dnf_calc_n.calculate.Damage;
 import org.dnf_calc_n.data.LoadImage;
 import org.dnf_calc_n.data.LoadJob;
 import org.json.simple.JSONObject;
@@ -18,6 +19,7 @@ public class WindowMainNew extends JFrame {
 
     Common common = new Common();
     Buff buff;
+    Damage damage;
     HashMap<String, Font> mapFont;
     JSONObject equipmentData;
 
@@ -63,6 +65,7 @@ public class WindowMainNew extends JFrame {
         jsonCache = common.loadJsonObject("cache/selected.json");
         equipmentData = common.loadJsonObject("resources/data/equipment_data.json");
         buff = new Buff(equipmentData);
+        damage = new Damage(equipmentData);
         mapIconItem = loadImage.loadAllImageItem();
         mapIconExtra = loadImage.loadAllImageExtra();
         mapFont = common.loadFont();
@@ -83,7 +86,7 @@ public class WindowMainNew extends JFrame {
         panelSelect = new PanelSelect(
                 mainPanel, panelResult,
                 equipmentData, mapIconItem, panelInfo,
-                buff
+                buff, damage
         );
 
     }
