@@ -28,6 +28,7 @@ public class WindowMainNew extends JFrame {
     PanelSelect panelSelect;
     PanelCustom panelCustom;
     PanelResult panelResult;
+    PanelCondition panelCondition;
 
     JSONObject jsonCache;
 
@@ -80,11 +81,12 @@ public class WindowMainNew extends JFrame {
         mainPanel.setLayout(null);
 
         // 영역 생성
+        panelCondition = new PanelCondition(mainPanel);
         panelResult = new PanelResult(mainPanel);
         panelCustom = new PanelCustom(mainPanel, mapWidgetCombo);
         panelInfo = new PanelInfo(mainPanel, mapIconItem, mapIconExtra);
         panelSelect = new PanelSelect(
-                mainPanel, panelResult,
+                mainPanel, panelResult, panelCondition,
                 equipmentData, mapIconItem, panelInfo,
                 buff, damage
         );

@@ -31,6 +31,7 @@ public class PanelSelect extends JPanel {
     HashMap<String, JButton> mapInfoButtons;
 
     PanelResult panelResult;
+    PanelCondition panelCondition;
     HashMap<String, String> mapResultBuff;
 
     PanelInfo panelInfo;
@@ -46,12 +47,13 @@ public class PanelSelect extends JPanel {
     String selectedMyth = "";
 
     public PanelSelect(
-            JPanel root, PanelResult panelResult,
+            JPanel root, PanelResult panelResult, PanelCondition panelCondition,
             JSONObject equipmentData, HashMap<String, ImageIcon> mapIconItem,
             PanelInfo panelInfo,
             Buff buff, Damage damage
     ){
         this.panelResult = panelResult;
+        this.panelCondition = panelCondition;
         mapFont = common.loadFont();
         this.buff = buff;
         this.damage = damage;
@@ -274,7 +276,8 @@ public class PanelSelect extends JPanel {
                     }else{
                         System.out.println("딜러 계산 시작");
                         damage.startDamageCalculate(panelInfo.getMapEquipments());
-
+                        panelCondition.setConditions(damage.getConditionJson());
+                        damage.applyCondition(panelCondition.getMapSelectCondition());
                     }
 
                     panelInfo.updateInfo();

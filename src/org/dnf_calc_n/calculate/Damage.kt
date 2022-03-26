@@ -29,6 +29,7 @@ class Damage(private var equipmentData: JSONObject) {
         listArrayCoolDown.clear()
         listArrayCoolRecover.clear()
         listArraySkillDamage.clear()
+        listArrayElement.clear()
         arrayLeveling = Array<Double>(19){0.0}
         arrayCoolDown = Array<Double>(19){0.0}
         arrayCoolRecover = Array<Double>(19){0.0}
@@ -45,6 +46,7 @@ class Damage(private var equipmentData: JSONObject) {
         jsonConditionArray.clear()
         jsonConditionGauge.clear()
         isCubeForced = false
+        isHPAlwaysLow = false
     }
 
     fun startDamageCalculate(mapEquipment: HashMap<String,String>) : Boolean {
@@ -102,6 +104,7 @@ class Damage(private var equipmentData: JSONObject) {
             val nowJson : JSONObject = (equipmentData[code] ?: continue) as JSONObject
 
             if(code == "14062") isCubeForced = true
+            if(code == "21212") isHPAlwaysLow = true
 
             val upDamage : JSONArray = nowJson["옵션피증"] as JSONArray
             for(i in 0 until upDamage.size){
@@ -141,7 +144,6 @@ class Damage(private var equipmentData: JSONObject) {
             }
         }
         // println(simpleSumOptions.toString())
-        calculateDamage()
     }
 
     private val levelIndex = arrayOf(
@@ -149,14 +151,16 @@ class Damage(private var equipmentData: JSONObject) {
         "60", "70", "75", "80", "85", "95", "100"
     )
 
-    private val listArrayLeveling = ArrayList<Array<Double>>()
-    private val listArrayCoolDown = ArrayList<Array<Double>>()
-    private val listArrayCoolRecover = ArrayList<Array<Double>>()
-    private val listArraySkillDamage = ArrayList<Array<Double>>()
+    private val listArrayLeveling = ArrayList<JSONArray>()
+    private val listArrayCoolDown = ArrayList<JSONArray>()
+    private val listArrayCoolRecover = ArrayList<JSONArray>()
+    private val listArraySkillDamage = ArrayList<JSONArray>()
+    private val listArrayElement = ArrayList<JSONArray>()
     private val jsonConditionToggle = JSONArray()
     private val jsonConditionArray = JSONArray()
     private val jsonConditionGauge = JSONArray()
     private var isCubeForced = false
+    private var isHPAlwaysLow = false
 
     private fun combineConditions(code: String, json: JSONArray){
         var reqType = json[0]
@@ -165,108 +169,220 @@ class Damage(private var equipmentData: JSONObject) {
         val upType = (json[3] ?: "") as String
         val upValue = (json[4] ?: 0.0) as Double
 
+        var parsedUpValue : Any? = null
+        var applyType : String = ""
+        var isCondition = true
+
+        if(upType=="피해증가"){
+            applyType = "피해증가"
+            parsedUpValue = upValue
+        }else if(upType.contains("레벨") || upType.contains("쿨회복") ||
+            upType.contains("쿨감") || upType.contains("스증") || upType.contains("방무")){
+            val strArray = upType.split(" ")
+            parsedUpValue = JSONArray()
+            applyType = strArray[strArray.size-1]
+            if(applyType=="방무") applyType = "스증"
+            damageCondition.parseLevelArrayOption(upType, upValue, isCubeForced).forEach { v -> (parsedUpValue as JSONArray).add(v)}
+        }else if(upType.contains("속성강화")){
+            parsedUpValue = JSONArray()
+            applyType = "속성강화"
+            damageCondition.parseElementOption(upType, upValue).forEach { v -> (parsedUpValue as JSONArray).add(v)}
+        }else if(upType.contains("데미지")){
+            parsedUpValue = JSONArray()
+            applyType = "상변데미지"
+            parsedUpValue.add(upType.split(" ")[0])
+            parsedUpValue.add(upValue)
+        }else if(upType.contains("커맨드 효과")){
+            applyType = "쿨감"
+            val nowArray = arrayOf(
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.02, 0.02, 0.02, 0.0, 0.0, 0.02, 0.02,
+                0.05, 0.05, 0.0, 0.05, 0.0
+            )
+            parsedUpValue = JSONArray()
+            nowArray.forEach { v -> parsedUpValue.add(v * upValue) }
+        }else{
+            isCondition = false
+        }
+
         if(reqType == null){  // 조건부가 없는 표기일 경우
             // 레벨 쿨감 스증 쿨회복 피해증가
             if(upType=="피해증가"){
-                totalDamage += upValue
+                totalDamage += (parsedUpValue ?: 0.0) as Double
             }
             try{
-                val nowArray = damageCondition.parseLevelArrayOption(upType, upValue, isCubeForced)
-                if(upType.contains("레벨")){
-                    listArrayLeveling.add(nowArray)
-                }else if(upType.contains("쿨회복")){
-                    listArrayCoolDown.add(nowArray)
-                }else if(upType.contains("쿨감")){
-                    listArrayCoolRecover.add(nowArray)
-                }else if(upType.contains("스증")){
-                    listArraySkillDamage.add(nowArray)
+                if(applyType=="레벨"){
+                    listArrayLeveling.add(parsedUpValue as JSONArray)
+                }else if(applyType=="쿨회복"){
+                    listArrayCoolDown.add(parsedUpValue as JSONArray)
+                }else if(applyType=="쿨감"){
+                    listArrayCoolRecover.add(parsedUpValue as JSONArray)
+                }else if(applyType=="스증"){
+                    listArraySkillDamage.add(parsedUpValue as JSONArray)
                 }
             }catch (ignored: Exception){}
         }else{
             reqType = reqType as String
             if(reqValue=="tg"){
-                var isCondition = true
                 val nowJson = JSONObject()
                 nowJson["code"] = code
                 nowJson["reqType"] = reqType
-                if(upType=="피해증가"){
-                    nowJson["applyType"] = "피해증가"
-                    nowJson["apply"] = upValue
-                }else if(upType.contains("속성강화")){
-                    nowJson["applyType"] = "속성강화"
-                    val elementArray = JSONArray()
-                    damageCondition.parseElementOption(upType, upValue).forEach { v -> elementArray.add(v)}
-                    nowJson["apply"] = elementArray
-                }else if(upType.contains("레벨")){
-                    nowJson["applyType"] = "레벨"
-                    val nowArray = damageCondition.parseLevelArrayOption(upType, upValue, isCubeForced)
-                    val applyJsonArray = JSONArray()
-                    nowArray.forEach { v -> applyJsonArray.add(v) }
-                    nowJson["apply"] = applyJsonArray
-                }else if(upType.contains("쿨회복")){
-                    nowJson["applyType"] = "쿨회복"
-                    val nowArray = damageCondition.parseLevelArrayOption(upType, upValue, isCubeForced)
-                    val applyJsonArray = JSONArray()
-                    nowArray.forEach { v -> applyJsonArray.add(v) }
-                    nowJson["apply"] = applyJsonArray
-                }else if(upType.contains("쿨감")){
-                    nowJson["applyType"] = "쿨감"
-                    val nowArray = damageCondition.parseLevelArrayOption(upType, upValue, isCubeForced)
-                    val applyJsonArray = JSONArray()
-                    nowArray.forEach { v -> applyJsonArray.add(v) }
-                    nowJson["apply"] = applyJsonArray
-                }else if(upType.contains("스증")){
-                    nowJson["applyType"] = "스증"
-                    val nowArray = damageCondition.parseLevelArrayOption(upType, upValue, isCubeForced)
-                    val applyJsonArray = JSONArray()
-                    nowArray.forEach { v -> applyJsonArray.add(v) }
-                    nowJson["apply"] = applyJsonArray
-                }else if(upType.contains("데미지")){
-                    nowJson["applyType"] = "상변데미지"
-                    nowJson["statusType"] = upType.split(" ")[0]
-                    nowJson["apply"] = upValue
-                }else if(upType=="커맨드 효과"){
-                    nowJson["applyType"] = "쿨감"
-                    val nowArray = arrayOf(
-                        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                        0.02, 0.02, 0.02, 0.0, 0.0, 0.02, 0.02,
-                        0.05, 0.05, 0.0, 0.05, 0.0
-                    )
-                    val applyJsonArray = JSONArray()
-                    nowArray.forEach { v -> applyJsonArray.add(v * upValue) }
-                    nowJson["apply"] = applyJsonArray
-                }else{
-                    isCondition = false
-                }
+                nowJson["applyType"] = applyType
+                nowJson["apply"] = parsedUpValue
                 if(isCondition){
                     jsonConditionToggle.add(nowJson)
                 }
             }else if(reqValue=="arr"){
 
             }else{
-                if(upType.contains("HP n%") || upType.contains("MP n%")){
+                val nowJson = JSONObject()
+                nowJson["code"] = code
+                nowJson["applyType"] = applyType
+                nowJson["apply"] = parsedUpValue
+
+                val applyValueArray = JSONArray()  // 저 중 고
+                val reqValueArray = JSONArray()  // 저 중 고
+                if(reqType.contains("HP n%") || reqType.contains("MP n%")){
+                    reqValueArray.add("1")
+                    if(!isHPAlwaysLow){
+                        reqValueArray.add("61")
+                        reqValueArray.add("100")
+                    }
+                    applyValueArray.add(0.0)
+                    applyValueArray.add(0.0)
+                    applyValueArray.add(0.0)
                     val strArray = reqType.split(" ")
-                    println(strArray.toString())
+                    nowJson["reqType"] = strArray[0] + " n%"
+
+                    val multi = ((reqMulti ?: 0.0) as Double)
                     val reg = strArray[strArray.size-1]
                     if(reg=="감소"){
-
+                        applyValueArray[0] = multi
+                        applyValueArray[1] = (multi/2).toInt().toDouble()
+                        applyValueArray[2] = 0.0
+                    }else if(reg=="마다"){
+                        applyValueArray[0] = 0.0
+                        applyValueArray[1] = (multi/2).toInt().toDouble()
+                        applyValueArray[2] = multi
                     }else if(reg=="미만" || reg=="이하"){
-
+                        applyValueArray[0] = 1.0
                     }else if(reg=="이상" || reg=="초과"){
-
+                        applyValueArray[2] = 1.0
                     }else if(reg=="구간"){
+                        applyValueArray[1] = 1.0
+                    }
+                    nowJson["applyGauge"] = applyValueArray
+                    nowJson["reqGauge"] = reqValueArray
 
+                }else{
+                    nowJson["reqType"] = reqType
+                    val multi = ((reqMulti ?: 1.0) as Double).toInt()
+                    val value = (reqValue ?: 1.0) as Double
+                    if(multi == -1){  //미만일때
+                        reqValueArray.add("${value.toInt()-1}")
+                        applyValueArray.add(1.0)
+                        reqValueArray.add("${value.toInt()}")
+                        applyValueArray.add(0.0)
+                    }else{
+                        for(j in 0..multi){
+                            reqValueArray.add("${(j*value).toInt()}")
+                            applyValueArray.add(j.toDouble())
+                        }
                     }
 
+
+                    nowJson["applyGauge"] = applyValueArray
+                    nowJson["reqGauge"] = reqValueArray
+                }
+                if(isCondition){
+                    jsonConditionGauge.add(nowJson)
+                }
+
+            }
+        }
+    }
+
+    fun getConditionJson(): JSONObject{
+        val returnJson = JSONObject()
+        for(i in jsonConditionToggle.indices){
+            val nowJson = jsonConditionToggle[i] as JSONObject
+            returnJson[nowJson["reqType"] as String] = "tg"
+        }
+        for(i in jsonConditionGauge.indices){
+            val nowJson = jsonConditionGauge[i] as JSONObject
+            val reqType = nowJson["reqType"] as String
+            val reqGauge = nowJson["reqGauge"] as JSONArray
+            if(returnJson[reqType]!= null){
+                val preArray = returnJson[reqType] as JSONArray
+                // println(preArray)
+                // println(reqGauge)
+                for(v in reqGauge){
+                    if(!preArray.contains(v)){
+                        preArray.add(v)
+                    }
+                }
+                val sortArray = ArrayList<Double>();
+                preArray.forEach { v -> sortArray.add(v.toString().toDouble()) }
+                sortArray.sort()
+                val addArray = JSONArray()
+                sortArray.forEach { v -> addArray.add(v.toInt().toString()) }
+                returnJson[reqType] = addArray
+            }else{
+                returnJson[reqType] = reqGauge
+            }
+        }
+        return returnJson
+    }
+
+    fun applyCondition(condition : HashMap<String, String>){
+        val onConditionJsonList = ArrayList<JSONObject>()
+        for(i in jsonConditionToggle.indices){
+            val nowJson = jsonConditionToggle[i] as JSONObject
+            if("true"==condition[nowJson["reqType"] as String]){
+                onConditionJsonList.add(nowJson)
+            }
+        }
+        for(i in jsonConditionGauge.indices){
+            val nowJson = jsonConditionGauge[i] as JSONObject
+            val reqGauge = nowJson["reqGauge"] as JSONArray
+            val applyGauge = nowJson["applyGauge"] as JSONArray
+
+            val nowGauge = condition[nowJson["reqType"] as String] as String
+            val nowGaugeValue = nowGauge.toDouble()
+            var index = 0
+            for(j in reqGauge.indices){
+                val tempValue = (reqGauge[j] as String).toDouble()
+                if(tempValue > nowGaugeValue) break
+                index++
+            }
+            val nowMulti = (applyGauge[index] as Double).toInt()
+            repeat(nowMulti) { onConditionJsonList.add(nowJson) }
+        }
+
+        for(nowJson in onConditionJsonList){
+            val applyType = nowJson["applyType"] as String
+            when(applyType){
+                "피해증가" -> totalDamage += nowJson["apply"] as Double
+                "속성강화" -> listArrayElement.add(nowJson["apply"] as JSONArray)
+                "스증" -> listArraySkillDamage.add(nowJson["apply"] as JSONArray)
+                "쿨감" -> listArrayCoolDown.add(nowJson["apply"] as JSONArray)
+                "쿨회복" -> listArrayCoolRecover.add(nowJson["apply"] as JSONArray)
+                "레벨" -> listArrayElement.add(nowJson["apply"] as JSONArray)
+                "상변데미지" -> {
+                    val applyJson = nowJson["apply"] as JSONArray
+                    val status = applyJson[0] as String
+                    statusDamage[status] = (statusDamage[status] ?: 0.0) + (applyJson[1] as Double)
                 }
             }
         }
+        calculateDamage()
     }
 
     var arrayLeveling = Array<Double>(19){0.0}
     var arrayCoolDown = Array<Double>(19){0.0}
     var arrayCoolRecover = Array<Double>(19){0.0}
     var arraySkillDamage = Array<Double>(19){1.0}
+    var arrayElement = Array<Double>(5){0.0}
 
 
     private var totalDamage = 0.0
@@ -274,21 +390,31 @@ class Damage(private var equipmentData: JSONObject) {
     private var optionLevel = 2.6
     private var titlePetPercent = 0.33
     private val baseElement = 13.0
-    private var customElement = 15.0+35*3+30+6+25+7
+    private var customElement = arrayOf(
+        15.0+35*3+30+6+25+7,
+        30.0+25,
+        15.0+35*3+30+25,
+        30.0+25
+    )
 
     private fun calculateDamage(){
 
+        println(jsonConditionGauge.toJSONString())
+
+        for(now in listArrayElement){
+            for(i in now.indices) arrayElement[i] += (now[i] as Double)
+        }
         for(now in listArrayLeveling){
-            for(i in now.indices) arrayLeveling[i] += now[i]
+            for(i in now.indices) arrayLeveling[i] += (now[i] as Double)
         }
         for(now in listArrayCoolDown){
-            for(i in now.indices) arrayCoolDown[i] = 1-(1-arrayCoolDown[i]) * (1-now[i])
+            for(i in now.indices) arrayCoolDown[i] = 1-(1-arrayCoolDown[i]) * (1-(now[i] as Double))
         }
         for(now in listArrayCoolRecover){
-            for(i in now.indices) arrayCoolRecover[i] += now[i]
+            for(i in now.indices) arrayCoolRecover[i] += (now[i] as Double)
         }
         for(now in listArraySkillDamage){
-            for(i in now.indices) arraySkillDamage[i] *= (1+now[i])
+            for(i in now.indices) arraySkillDamage[i] *= (1+(now[i] as Double))
         }
         println("arrayLeveling: "+arrayLeveling.contentToString())
         println("arrayCoolDown: "+arrayCoolDown.contentToString())
@@ -300,10 +426,15 @@ class Damage(private var equipmentData: JSONObject) {
             totalDamage += (d * optionLevel)
         }
 
+        val elementArray = Array<Double>(4){baseElement}
+        elementArray[0] += (simpleSumOptions["화 속성강화"] ?: 0.0) + arrayElement[0] + customElement[0]
+        elementArray[1] += (simpleSumOptions["수 속성강화"] ?: 0.0) + arrayElement[1] + customElement[1]
+        elementArray[2] += (simpleSumOptions["명 속성강화"] ?: 0.0) + arrayElement[2] + customElement[2]
+        elementArray[3] += (simpleSumOptions["암 속성강화"] ?: 0.0) + arrayElement[3] + customElement[3]
         var maxElement = 0.0
         var minElement = 9999.0
-        for(key in elementKey){
-            val nowElement = simpleSumOptions[key] ?: 0.0
+        for(i in 0 until 4){
+            val nowElement = elementArray[i]
             if(nowElement > maxElement){
                 maxElement = nowElement
             }
@@ -319,7 +450,7 @@ class Damage(private var equipmentData: JSONObject) {
         val damage105 = (totalDamage / 1000.0) * (1+titlePetPercent)
 
         val sumDamage = ((damage100 + damage105) * skillDamage * stat * atk *
-                (1.05 + 0.0045 * (maxElement+baseElement+customElement))
+                (1.05 + 0.0045 * maxElement)
                 )
 
         val statusDamageMap = HashMap<String, Double>()
