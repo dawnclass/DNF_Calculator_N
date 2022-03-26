@@ -1,6 +1,8 @@
 package org.dnf_calc_n.ui.main;
 
 import org.dnf_calc_n.Common;
+import org.dnf_calc_n.calculate.Damage;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import javax.swing.*;
@@ -19,8 +21,10 @@ public class PanelCondition extends JPanel {
     HashMap<String, Font> mapFont;
     JPanel root;
     Color bgColor = new Color(50, 46, 52);
+    Damage damage;
 
-    public PanelCondition(JPanel root){
+    public PanelCondition(JPanel root, Damage damage){
+        this.damage = damage;
         this.mapFont = common.loadFont();
         this.root = root;
         this.setBackground(bgColor);
@@ -55,7 +59,7 @@ public class PanelCondition extends JPanel {
             nowLabel.setForeground(Color.WHITE);
             nowLabel.setFont(mapFont.get("normal_bold"));
             nowLabel.setBorder(new EmptyBorder(0, 0, 0, 0));
-            nowLabel.setBounds(5+nowGrid[0]*120, 3+nowGrid[1]*25, 90, 25);
+            nowLabel.setBounds(5+nowGrid[0]*150, 3+nowGrid[1]*25, 90, 25);
             this.add(nowLabel);
             labelConditions.put(key, nowLabel);
             if("tg".equals(conditionJson.get(key))){
@@ -63,7 +67,7 @@ public class PanelCondition extends JPanel {
                 listToggle.add(key);
                 JCheckBox nowCheck = new JCheckBox();
                 nowCheck.setBackground(bgColor);
-                nowCheck.setBounds(95+nowGrid[0]*120, 3+nowGrid[1]*25, 30, 25);
+                nowCheck.setBounds(95+nowGrid[0]*150, 6+nowGrid[1]*25, 30, 20);
                 if(mapSelectCondition.get(key) == null){
                     mapSelectCondition.put(key, "true");
                     nowCheck.setSelected(true);
@@ -80,14 +84,32 @@ public class PanelCondition extends JPanel {
                         }else{
                             mapSelectCondition.put(key, "false");
                         }
+                        damage.applyCondition(mapSelectCondition);
                     }
                 });
                 this.add(nowCheck);
                 widgetToggle.put(key, nowCheck);
             }else{
-                // 게이지형
+                // 게이지 형
                 listGauge.add(key);
-                mapSelectCondition.put(key, "0");
+                JSONArray nowJson = (JSONArray) conditionJson.get(key);
+                String[] nowArray = new String[nowJson.size()];
+                for(int i=0;i<nowJson.size();i++){
+                    nowArray[i] = (String) nowJson.get(i);
+                }
+                mapSelectCondition.putIfAbsent(key, nowArray[nowArray.length-1]);
+                JComboBox<String> nowCombo = new JComboBox<>(nowArray);
+                nowCombo.setFont(mapFont.get("normal"));
+                nowCombo.setBounds(95+nowGrid[0]*150, 6+nowGrid[1]*25, 60, 20);
+                nowCombo.setSelectedItem(nowArray[nowArray.length-1]);
+                nowCombo.addItemListener(e -> {
+                    if(e.getStateChange() == ItemEvent.SELECTED){
+                        mapSelectCondition.put(key, (String) nowCombo.getSelectedItem());
+                        damage.applyCondition(mapSelectCondition);
+                    }
+                });
+                this.add(nowCombo);
+                widgetGauge.put(key, nowCombo);
             }
             index++;
         }

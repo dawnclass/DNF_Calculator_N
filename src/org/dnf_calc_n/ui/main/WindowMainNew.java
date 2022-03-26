@@ -81,7 +81,7 @@ public class WindowMainNew extends JFrame {
         mainPanel.setLayout(null);
 
         // 영역 생성
-        panelCondition = new PanelCondition(mainPanel);
+        panelCondition = new PanelCondition(mainPanel, damage);
         panelResult = new PanelResult(mainPanel);
         panelCustom = new PanelCustom(mainPanel, mapWidgetCombo);
         panelInfo = new PanelInfo(mainPanel, mapIconItem, mapIconExtra);
