@@ -152,11 +152,11 @@ class Buff(private var equipmentData: JSONObject) {
         println("각 스탯= $finalCruxStat")
         println("최종 버프력= $finalBuff")
 
-        mapResult["버프력"] = totalBuff.toInt().toString()
-        mapResult["축스탯"] = finalBlessStat.toString()
-        mapResult["축공"] = finalBlessAtk.toString()
-        mapResult["각스탯"] = finalCruxStat.toString()
-        mapResult["버프"] = finalBuff.toString()
+        mapResult["total"] = totalBuff.toInt().toString()
+        mapResult["blessStat"] = finalBlessStat.toString()
+        mapResult["blessAtk"] = finalBlessAtk.toString()
+        mapResult["cruxStat"] = finalCruxStat.toString()
+        mapResult["score"] = finalBuff.toString()
 
     }
 

@@ -273,12 +273,16 @@ public class PanelSelect extends JPanel {
                         System.out.println("버퍼 계산 시작");
                         mapResultBuff = buff.getMapResult();
                         panelResult.setBuffResult(mapResultBuff);
-                    }else{
-                        System.out.println("딜러 계산 시작");
-                        damage.startDamageCalculate(panelInfo.getMapEquipments());
-                        panelCondition.setConditions(damage.getConditionJson());
-                        damage.applyCondition(panelCondition.getMapSelectCondition());
                     }
+                    System.out.println("딜러 계산 시작");
+                    damage.startDamageCalculate(panelInfo.getMapEquipments());
+                    panelCondition.setConditions(damage.getConditionJson());
+                    damage.applyCondition(panelCondition.getMapSelectCondition());
+                    panelResult.setDamageArray(
+                            damage.getArrayTotalLevelDamage(),
+                            damage.getArrayTotalCoolDown(),
+                            damage.getArrayTotalLevelDamageWithCool()
+                    );
 
                     panelInfo.updateInfo();
                 }

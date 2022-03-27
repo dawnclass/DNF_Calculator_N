@@ -22,8 +22,10 @@ public class PanelCondition extends JPanel {
     JPanel root;
     Color bgColor = new Color(50, 46, 52);
     Damage damage;
+    PanelResult panelResult;
 
-    public PanelCondition(JPanel root, Damage damage){
+    public PanelCondition(JPanel root, Damage damage, PanelResult panelResult){
+        this.panelResult =panelResult;
         this.damage = damage;
         this.mapFont = common.loadFont();
         this.root = root;
@@ -37,11 +39,9 @@ public class PanelCondition extends JPanel {
     ArrayList<String> listGauge = new ArrayList<>();
 
     int[][] grid = {
-            {0, 0},{0, 1},{0, 2},{0, 3},{0, 4},
-            {1, 0},{1, 1},{1, 2},{1, 3},{1, 4},
-            {2, 0},{2, 1},{2, 2},{2, 3},{2, 4},
-            {3, 0},{3, 1},{3, 2},{3, 3},{3, 4},
-            {4, 0},{4, 1},{4, 2},{4, 3},{4, 4}
+            {0, 0},{0, 1},{0, 2},{0, 3},{0, 4},{0, 5},
+            {1, 0},{1, 1},{1, 2},{1, 3},{1, 4},{1, 5},
+            {2, 0},{2, 1},{2, 2},{2, 3},{2, 4},{2, 5}
     };
     HashMap<String, JLabel> labelConditions = new HashMap<>();
     HashMap<String, JCheckBox> widgetToggle = new HashMap<>();
@@ -59,7 +59,7 @@ public class PanelCondition extends JPanel {
             nowLabel.setForeground(Color.WHITE);
             nowLabel.setFont(mapFont.get("normal_bold"));
             nowLabel.setBorder(new EmptyBorder(0, 0, 0, 0));
-            nowLabel.setBounds(5+nowGrid[0]*150, 3+nowGrid[1]*25, 90, 25);
+            nowLabel.setBounds(5+nowGrid[0]*225, nowGrid[1]*25, 140, 25);
             this.add(nowLabel);
             labelConditions.put(key, nowLabel);
             if("tg".equals(conditionJson.get(key))){
@@ -67,7 +67,7 @@ public class PanelCondition extends JPanel {
                 listToggle.add(key);
                 JCheckBox nowCheck = new JCheckBox();
                 nowCheck.setBackground(bgColor);
-                nowCheck.setBounds(95+nowGrid[0]*150, 6+nowGrid[1]*25, 30, 20);
+                nowCheck.setBounds(145+nowGrid[0]*225, 1+nowGrid[1]*24, 30, 20);
                 if(mapSelectCondition.get(key) == null){
                     mapSelectCondition.put(key, "true");
                     nowCheck.setSelected(true);
@@ -85,6 +85,11 @@ public class PanelCondition extends JPanel {
                             mapSelectCondition.put(key, "false");
                         }
                         damage.applyCondition(mapSelectCondition);
+                        panelResult.setDamageArray(
+                                damage.getArrayTotalLevelDamage(),
+                                damage.getArrayTotalCoolDown(),
+                                damage.getArrayTotalLevelDamageWithCool()
+                        );
                     }
                 });
                 this.add(nowCheck);
@@ -100,12 +105,17 @@ public class PanelCondition extends JPanel {
                 mapSelectCondition.putIfAbsent(key, nowArray[nowArray.length-1]);
                 JComboBox<String> nowCombo = new JComboBox<>(nowArray);
                 nowCombo.setFont(mapFont.get("normal"));
-                nowCombo.setBounds(95+nowGrid[0]*150, 6+nowGrid[1]*25, 60, 20);
+                nowCombo.setBounds(145+nowGrid[0]*225, 3+nowGrid[1]*24, 65, 20);
                 nowCombo.setSelectedItem(nowArray[nowArray.length-1]);
                 nowCombo.addItemListener(e -> {
                     if(e.getStateChange() == ItemEvent.SELECTED){
                         mapSelectCondition.put(key, (String) nowCombo.getSelectedItem());
                         damage.applyCondition(mapSelectCondition);
+                        panelResult.setDamageArray(
+                                damage.getArrayTotalLevelDamage(),
+                                damage.getArrayTotalCoolDown(),
+                                damage.getArrayTotalLevelDamageWithCool()
+                        );
                     }
                 });
                 this.add(nowCombo);

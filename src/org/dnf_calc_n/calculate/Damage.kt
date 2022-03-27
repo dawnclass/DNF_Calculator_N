@@ -419,6 +419,10 @@ class Damage(private var equipmentData: JSONObject) {
     private var arraySkillDamage = Array<Double>(19){1.0}
     private var arrayElement = Array<Double>(5){0.0}
 
+    var arrayTotalLevelDamage = Array<Double>(19){0.0}
+    var arrayTotalLevelDamageWithCool = Array<Double>(19){0.0}
+    var arrayTotalCoolDown = Array<Double>(19){0.0}
+
 
     private var totalDamage = 0.0
 
@@ -438,7 +442,20 @@ class Damage(private var equipmentData: JSONObject) {
         arrayCoolRecover = Array<Double>(19){0.0}
         arraySkillDamage = Array<Double>(19){1.0}
         arrayElement = Array<Double>(5){0.0}
+        arrayTotalLevelDamage = Array<Double>(19){0.0}
+        arrayTotalLevelDamageWithCool = Array<Double>(19){0.0}
+        arrayTotalCoolDown = Array<Double>(19){0.0}
     }
+
+    private val levelMax = arrayOf(
+        100.0, 56.0, 53.0, 51.0, 48.0, 46.0, 43.0, 41.0, 38.0, 36.0, 23.0, 14.0,
+        28.0, 23.0, 21.0, 18.0, 7.0, 11.0, 4.0
+    )
+    private val levelInterval = arrayOf(
+        1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 5,
+        2, 2, 2, 2, 5, 2, 5
+    )
+    private val levelEfficiency = arrayOf(0.0, 0.01, 0.1, 0.15, 0.18, 0.23)
 
     private fun calculateDamage(){
 
@@ -513,6 +530,32 @@ class Damage(private var equipmentData: JSONObject) {
 
         println("총 피증: $totalSumDamage")
         println("sumDamage: $sumDamage")
+
+        arrayTotalLevelDamage = Array<Double>(19){0.0}
+        arrayTotalLevelDamageWithCool = Array<Double>(19){0.0}
+        arrayTotalCoolDown = Array<Double>(19){0.0}
+
+        for(i in 0 until 19){
+            arrayTotalLevelDamage[i] = (sumDamage *
+                    (1 + (arrayLeveling[i] + levelMax[i]) * levelEfficiency[levelInterval[i]]) /
+                    (1 + levelMax[i] * levelEfficiency[levelInterval[i]])
+                    ) * arraySkillDamage[i]
+            if(levelInterval[i] == 5){
+                if(arrayCoolDown[i] > 0) arrayCoolDown[i] = 0.0
+                if(arrayCoolRecover[i] > 0) arrayCoolRecover[i] = 0.0
+                arrayTotalCoolDown[i] = 1 - (1 - arrayCoolDown[i]) / (1+arrayCoolRecover[i])
+            }else if(levelInterval[i] == 3 || levelInterval[i] == 1){
+                arrayTotalCoolDown[i] = 0.0
+            }else{
+                arrayTotalCoolDown[i] = 1 - (1 - arrayCoolDown[i]) / (1+arrayCoolRecover[i])
+            }
+
+            arrayTotalLevelDamageWithCool[i] = arrayTotalLevelDamage[i]* (((1 / (1-arrayTotalCoolDown[i]))-1)*0.5+1)
+        }
+
+        println("arrayTotalLevelDamage: ${arrayTotalLevelDamage.contentToString()}")
+        println("arrayTotalCoolDown: ${arrayTotalCoolDown.contentToString()}")
+        println("arrayTotalLevelDamageWithCool: ${arrayTotalLevelDamageWithCool.contentToString()}")
 
     }
 
