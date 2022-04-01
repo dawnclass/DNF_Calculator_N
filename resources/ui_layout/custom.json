@@ -1,0 +1,47 @@
+{
+  "textField": [
+    {"tag": "elementExtra", "text": "기타모속강", "position": [1, 2]},
+    {"tag": "buffLvBless", "text": "축레벨+", "position": [3, 0]},
+    {"tag": "buffLvCrux", "text": "1각레벨+", "position": [3, 1]},
+    {"tag": "buffExtraStat", "text": "기타스탯", "position": [3, 2]}
+  ],
+  "comboBox": [
+    {"tag": "enchantWeapon", "text": "무기마부", "position": [0, 0], "values": [
+      "화명 15", "화명 12", "수암 15", "수암 12","모속 13", "모속 11"]},
+    {"tag": "enchantArmorStat", "text": "상하마부", "position": [0, 1], "values": [
+      "70/40", "50/20", "공 45"]},
+    {"tag": "enchantShoulder", "text": "어깨마부", "position": [0, 2], "values": [
+      "스증 2%", "스증 1%", "스탯 100", "스탯 50", "기타(크확)"]},
+    {"tag": "enchantArmorCritical", "text": "벨신마부", "position": [0, 3], "values": [
+      "스탯 100", "스탯 50", "스탯 25", "기타(크확)"]},
+    {"tag": "enchantAccessory", "text": "악세마부", "position": [0, 4], "values": [
+      "화명 35", "화명 30", "화명 26", "수암 35", "수암 30", "수암 26", "모속 33", "모속 28", "모속 25", "모속 23"]},
+    {"tag": "enchantSub", "text": "보장마부", "position": [0, 5], "values": [
+      "공 100", "공 70"]},
+    {"tag": "enchantMagic", "text": "법석마부", "position": [0, 6], "values": [
+      "모속 30", "모속 25", "모속 20", "모속 18"]},
+    {"tag": "enchantEarring", "text": "귀걸마부", "position": [0, 7], "values": [
+      "스탯 150", "스탯 125", "스탯 100"]},
+    {"tag": "enchantTitle", "text": "칭호마부", "position": [0, 8], "values": [
+      "화 6", "수 6", "명 6", "암 6", "모속 4", "모속 3"]},
+    {"tag": "title", "text": "칭호", "position": [1, 0], "values": [
+      "피증 15%", "피증 10%", "모속 32", "없음"]},
+    {"tag": "creature", "text": "크리쳐", "position": [1, 1], "values": [
+      "피증 18%", "피증 15%", "없음"]},
+
+    {"tag": "enchantBuffArmor12", "text": "상하마부", "position": [2, 0], "values": [
+      "100/100", "50/75"]},
+    {"tag": "enchantBuffArmor345", "text": "어벨신마부", "position": [2, 1], "values": [
+      "100/100", "75/50"]},
+    {"tag": "enchantBuffAccessory", "text": "악세마부", "position": [2, 2], "values": [
+      "스탯 70", "스탯 55"]},
+    {"tag": "enchantBuffSub", "text": "보장마부", "position": [2, 3], "values": [
+      "스탯 100", "스탯 80", "스탯 65"]},
+    {"tag": "enchantBuffMagic", "text": "법석마부", "position": [2, 4], "values": [
+      "스탯 80", "스탯 60", "스탯 45"]},
+    {"tag": "enchantBuffEarring", "text": "귀걸마부", "position": [2, 5], "values": [
+      "스탯 150", "스탯 125", "스탯 100"]},
+    {"tag": "buffAmp", "text": "증폭수준", "position": [3, 3], "values": [
+      "0증", "8증", "10증", "11증", "12증"]}
+  ]
+}

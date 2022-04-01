@@ -1,26 +1,67 @@
 package org.dnf_calc_n.ui.main;
 
 import org.dnf_calc_n.Common;
+import org.dnf_calc_n.calculate.Buff;
+import org.dnf_calc_n.calculate.Damage;
 import org.dnf_calc_n.data.LoadJob;
+import org.dnf_calc_n.ui.component.RoundButton;
+import org.dnf_calc_n.ui.sub.WindowCustom;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.util.HashMap;
 
 public class PanelCustom extends JPanel {
 
+    boolean isBuff = false;
+    PanelResult panelResult;
+    PanelCondition panelCondition;
+    PanelInfo panelInfo;
+    Buff buff;
+    Damage damage;
     JPanel root;
     JPanel customPanel;
     Common common = new Common();
     HashMap<String, Font> mapFont;
     HashMap<String, JComboBox<String>> mapWidgetCombo;
+    WindowCustom windowCustom;
 
-    public PanelCustom(JPanel root, HashMap<String, JComboBox<String>> mapWidgetCombo){
+    public PanelCustom(JPanel root, PanelResult panelResult, PanelInfo panelInfo,
+                       PanelCondition panelCondition,
+                       HashMap<String, JComboBox<String>> mapWidgetCombo,
+                       Buff buff, Damage damage){
+        PanelCustom panelCustom = this;
+        this.panelResult = panelResult;
+        this.panelCondition = panelCondition;
+        this.buff = buff;
+        this.damage = damage;
         this.root = root;
         this.mapWidgetCombo = mapWidgetCombo;
+        this.panelInfo = panelInfo;
         mapFont = common.loadFont();
         createCustomSection();
+
+        RoundButton customBtn = new RoundButton();
+        customBtn.setText("커스텀");
+        customBtn.setFont(mapFont.get("bold"));
+        customBtn.setBackground(new Color(200, 200, 200));
+        customBtn.setBounds(5, 100, 70, 40);
+        customBtn.setBorder(new EmptyBorder(0, 0, 0, 0));
+        customBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try{
+                    windowCustom.dispose();
+                }catch (Exception ignored){}
+                windowCustom = new WindowCustom(panelCustom);
+                windowCustom.startCustom();
+            }
+        });
+        customPanel.add(customBtn);
     }
 
     private void createCustomSection(){
@@ -30,18 +71,41 @@ public class PanelCustom extends JPanel {
         customPanel.setBounds(270, 10, 190, 150);
         root.add(customPanel);
         var json = common.loadJsonObject("cache/selected.json");
+
+        var nowLabelOption = new JLabel();
+        nowLabelOption.setText("장비옵션레벨 :");
+        nowLabelOption.setFont(mapFont.get("bold"));
+        nowLabelOption.setForeground(Color.WHITE);
+        nowLabelOption.setBounds(10, 70, 100, 18);
+        customPanel.add(nowLabelOption);
+
+        String[] optionLvs = {"20", "40", "60", "80"};
+        String nowOptionLv;
+        try{
+            nowOptionLv = (String) json.get("optionLv");
+        }catch (Exception e){
+            nowOptionLv = "60";
+        }
+        var optionLvCombo = new JComboBox<>(optionLvs);
+        optionLvCombo.setBounds(110, 70, 70, 20);
+        optionLvCombo.setFont(mapFont.get("normal"));
+        optionLvCombo.setSelectedItem(nowOptionLv);
+        optionLvCombo.addItemListener(e -> {
+            if(e.getStateChange() == ItemEvent.SELECTED){
+                var optionLv = (String) optionLvCombo.getSelectedItem();
+                common.saveCacheData("selected", "optionLv", optionLv);
+                calculationPackage();
+            }
+        });
+        customPanel.add(optionLvCombo);
+
+
         var nowLabel = new JLabel();
-        nowLabel.setText(" 직업");
+        nowLabel.setText(" 직업 :");
         nowLabel.setFont(mapFont.get("bold"));
         nowLabel.setForeground(Color.WHITE);
         nowLabel.setBounds(10, 10, 60, 18);
         customPanel.add(nowLabel);
-        var nowLabel2 = new JLabel();
-        nowLabel2.setText(":");
-        nowLabel2.setFont(mapFont.get("bold"));
-        nowLabel2.setForeground(Color.WHITE);
-        nowLabel2.setBounds(45, 10, 10, 18);
-        customPanel.add(nowLabel2);
 
         LoadJob loadJob = new LoadJob();
         HashMap<String, String[]> mapJob = loadJob.getJobMap();
@@ -65,13 +129,13 @@ public class PanelCustom extends JPanel {
         jobTypeCombo.addItemListener(e -> {
             if(e.getStateChange() == ItemEvent.SELECTED){
                 var jobType = (String) jobTypeCombo.getSelectedItem();
+                common.saveCacheData("selected", "jobType", jobType);
                 // System.out.println(jobType);
                 var jobArray = mapJob.get(jobType);
                 // System.out.println(Arrays.toString(jobArray));
                 jobCombo.removeAllItems();
                 for(String job : jobArray) jobCombo.insertItemAt(job, jobCombo.getItemCount());
                 jobCombo.setSelectedIndex(0);
-                common.saveCacheData("selected", "jobType", jobType);
             }
         });
         //System.out.println(nowJobType);
@@ -83,6 +147,7 @@ public class PanelCustom extends JPanel {
                 var job = (String) jobCombo.getSelectedItem();
                 // System.out.println(job);
                 common.saveCacheData("selected", "job", job);
+                calculationPackage();
             }
         });
         String nowJob = "";
@@ -98,6 +163,27 @@ public class PanelCustom extends JPanel {
         mapWidgetCombo.put("job", jobCombo);
         mapWidgetCombo.put("jobType", jobTypeCombo);
 
+    }
+
+    public void calculationPackage(){
+        System.out.println("딜러 계산 시작");
+        damage.startDamageCalculate(panelInfo.getMapEquipments());
+        panelCondition.setConditions(damage.getConditionJson());
+        damage.applyCondition(panelCondition.getMapSelectCondition());
+        panelResult.setDamageArray(
+                damage.getArrayTotalLevelDamage(),
+                damage.getArrayTotalCoolDown(),
+                damage.getArrayTotalLevelDamageWithCool()
+        );
+        panelResult.resetBuffValue();
+        buff.setLevelingArray(damage.getArrayLeveling());
+        boolean isBuff = buff.startBuffCalculate(panelInfo.getMapEquipments());
+        buff.setBuff(isBuff);
+        if(isBuff){
+            System.out.println("버퍼 계산 시작");
+            var mapResultBuff = buff.getMapResult();
+            panelResult.setBuffResult(mapResultBuff);
+        }
     }
 
 }

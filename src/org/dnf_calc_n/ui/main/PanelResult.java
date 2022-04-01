@@ -4,6 +4,7 @@ import org.dnf_calc_n.Common;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,12 +29,40 @@ public class PanelResult extends JPanel {
         root.add(this);
 
         damageGraphPanel = new DamageGraphPanel(this, mapFont);
+        makeDamagePanel();
         makeBuffPanel();
         // setDamagePanel();
     }
 
     public void setDamageArray(Double[] damageArray, Double[] coolDownArray, Double[] coolDamageArray){
         damageGraphPanel.setDamageArray(damageArray, coolDownArray, coolDamageArray);
+        setDamageValue(damageArray, coolDamageArray);
+    }
+
+    int[] groupTotal = {};
+    int[] group0 = {0};
+    int[] group1 = {1, 2, 3, 4, 5, 6};
+    int[] group2 = {7, 8, 12};
+    int[] group3 = {9, 13, 14, 15, 17};
+    int[] group4 = {11, 16, 18};
+    int[][] group = {groupTotal, group0, group1, group2, group3, group4};
+    private void setDamageValue(Double[] damageArray, Double[] coolDamageArray){
+        damageValueLabel.get("종합").setText("준비중");
+        damageValueLabel.get("종합2").setText("준비중");
+        damageValueLabel.get("평타기숙").setText((int)(damageArray[0]*100)+"%");
+        damageValueLabel.get("평타기숙2").setText("-");
+        for(int i=2;i<6;i++){
+            double value = 0;
+            double value2 = 0;
+            for(int j : group[i]){
+                value+=damageArray[j];
+                value2+=coolDamageArray[j];
+            }
+            value = value / group[i].length;
+            value2 = value2 / group[i].length;
+            damageValueLabel.get(tagDamageValue[i]).setText((int)(value*100)+"%");
+            damageValueLabel.get(tagDamageValue[i]+"2").setText((int)(value2*100)+"%");
+        }
     }
 
     static class DamageGraphPanel extends JPanel{
@@ -73,7 +102,9 @@ public class PanelResult extends JPanel {
             g.fillRect(0, 0, 250, 490);
             g.setColor(Color.GRAY);
             g.drawLine(30, 5, 30, 485);
-            g.drawLine(120, 5, 120, 485);
+            g.setColor(Color.LIGHT_GRAY);
+            g.drawLine(120, 20, 120, 485);
+            g.setColor(Color.GRAY);
             g.drawLine(210, 5, 210, 485);
             for(int i=0;i<index.length;i++){
                 g.setColor(Color.BLACK);
@@ -85,15 +116,110 @@ public class PanelResult extends JPanel {
                     g.fillRect(30, 22+25*i, x, 5);
                     g.setFont(mapFont.get("more_small"));
                     g.drawString((int)(damageArray[i]*100)+"%", x, 20+25*i);
-                    g.setColor(Color.BLUE);
                     int x2 = (int) ((coolDamageArray[i] / maxValue) * 200)-x;
+                    if(x2 >= 0){
+                        g.setColor(Color.BLUE);
+                    }else{
+                        g.setColor(new Color(144, 0, 255));
+                    }
                     g.fillRect(30+x, 22+25*i, x2, 5);
                     if(!damageArray[i].equals(coolDamageArray[i])){
                         g.drawString((int)(coolDamageArray[i]*100)+"%", x+x2, 35+25*i);
                     }
+
+                    int x3 = (int) (coolDownArray[i] * 90);
+                    g.setColor(new Color(0, 0, 0));
+                    g.fillRoundRect(117+x3, 21+25*i, 6, 6, 6, 6);
+                    //g.drawString((int)(-coolDownArray[i]*1000)/10.0+"%", 90+x3, 27+25*i);
                 }catch (Exception ignored){}
             }
+            g.setColor(new Color(0, 0, 0));
+            g.setFont(new Font("맑은 고딕", Font.BOLD, 12));
+            g.drawString("←증가  쿨타임  감소→", 55, 14);
         }
+    }
+
+    HashMap<String, JLabel> damageValueLabel = new HashMap<>();
+    String[] tagDamageValue = {"종합", "평타기숙", "기본스킬", "하급스킬", "상급스킬", "각성스킬"};
+    private void makeDamagePanel(){
+        damagePanel = new JPanel();
+        damagePanel.setBackground(new Color(34, 32, 37));
+        damagePanel.setBorder(new LineBorder(Color.DARK_GRAY));
+        damagePanel.setBounds(260, 5, 185, 305);
+        damagePanel.setLayout(null);
+        this.add(damagePanel);
+        JLabel nowLabelDamage = new JLabel("<장비 데미지%>");
+        nowLabelDamage.setFont(mapFont.get("bold"));
+        nowLabelDamage.setBackground(new Color(34, 32, 37));
+        nowLabelDamage.setForeground(Color.WHITE);
+        nowLabelDamage.setBounds(0, 0, 185, 30);
+        nowLabelDamage.setHorizontalAlignment(JLabel.CENTER);
+        damagePanel.add(nowLabelDamage);
+        JLabel nowLabelOnlyDamage = new JLabel("순데미지%");
+        nowLabelOnlyDamage.setFont(mapFont.get("small_bold"));
+        nowLabelOnlyDamage.setBackground(new Color(34, 32, 37));
+        nowLabelOnlyDamage.setForeground(new Color(255, 132, 132));
+        nowLabelOnlyDamage.setBounds(50, 30, 67, 25);
+        nowLabelOnlyDamage.setHorizontalAlignment(JLabel.CENTER);
+        damagePanel.add(nowLabelOnlyDamage);
+        JLabel nowLabelWithDamage = new JLabel("쿨감보정%");
+        nowLabelWithDamage.setFont(mapFont.get("small_bold"));
+        nowLabelWithDamage.setBackground(new Color(34, 32, 37));
+        nowLabelWithDamage.setForeground(new Color(132, 155, 255));
+        nowLabelWithDamage.setBounds(118, 30, 67, 25);
+        nowLabelWithDamage.setHorizontalAlignment(JLabel.CENTER);
+        damagePanel.add(nowLabelWithDamage);
+
+        for(int i=0;i<6;i++){
+            Font font;
+            int height;
+            if(i==0){
+                font = mapFont.get("bold");
+                height = 30;
+            }else{
+                font = mapFont.get("small_bold");
+                height = 25;
+            }
+            JLabel nowLabel = new JLabel(tagDamageValue[i]);
+            nowLabel.setFont(font);
+            nowLabel.setForeground(Color.WHITE);
+            nowLabel.setBounds(0, 55+25*i+(30-height), 50, height);
+            nowLabel.setHorizontalAlignment(JLabel.CENTER);
+            nowLabel.setVerticalAlignment(JLabel.CENTER);
+            damagePanel.add(nowLabel);
+            JLabel nowValueLabel = new JLabel("");
+            nowValueLabel.setForeground(new Color(255, 132, 132));
+            nowValueLabel.setBounds(50, 55+25*i+(30-height), 67, height);
+            nowValueLabel.setHorizontalAlignment(JLabel.CENTER);
+            damagePanel.add(nowValueLabel);
+            damageValueLabel.put(tagDamageValue[i], nowValueLabel);
+            JLabel nowValueLabel2 = new JLabel("");
+            nowValueLabel2.setForeground(new Color(132, 155, 255));
+            nowValueLabel2.setBounds(118, 55+25*i+(30-height), 67, height);
+            nowValueLabel2.setHorizontalAlignment(JLabel.CENTER);
+            damagePanel.add(nowValueLabel2);
+            damageValueLabel.put(tagDamageValue[i]+"2", nowValueLabel2);
+            JPanel guide = new JPanel();
+            guide.setBackground(Color.DARK_GRAY);
+            guide.setBounds(0, 55+25*i+(30-height), 185, 1);
+            damagePanel.add(guide);
+        }
+        JPanel guide4 = new JPanel();
+        guide4.setBackground(Color.DARK_GRAY);
+        guide4.setBounds(0, 60+25*6, 185, 1);
+        damagePanel.add(guide4);
+        JPanel guide3 = new JPanel();
+        guide3.setBackground(Color.DARK_GRAY);
+        guide3.setBounds(0, 30, 185, 2);
+        damagePanel.add(guide3);
+        JPanel guide = new JPanel();
+        guide.setBackground(Color.DARK_GRAY);
+        guide.setBounds(50, 30, 2, 400);
+        damagePanel.add(guide);
+        JPanel guide2 = new JPanel();
+        guide2.setBackground(Color.DARK_GRAY);
+        guide2.setBounds(117, 30, 1, 400);
+        damagePanel.add(guide2);
     }
 
     JPanel buffPanel;
@@ -101,21 +227,26 @@ public class PanelResult extends JPanel {
     private void makeBuffPanel(){
         buffPanel = new JPanel();
         buffPanel.setBackground(new Color(34, 32, 37));
-        buffPanel.setBorder(new EmptyBorder(0,0,0,0));
-        buffPanel.setBounds(260, 200, 185, 150);
+        buffPanel.setBorder(new LineBorder(Color.DARK_GRAY));
+        buffPanel.setBounds(260, 315, 185, 180);
         buffPanel.setLayout(null);
         this.add(buffPanel);
-
+        JLabel nowLabelBuff = new JLabel("<버프점수 계산>");
+        nowLabelBuff.setFont(mapFont.get("bold"));
+        nowLabelBuff.setBackground(new Color(34, 32, 37));
+        nowLabelBuff.setForeground(Color.WHITE);
+        nowLabelBuff.setBounds(0, 0, 185, 30);
+        nowLabelBuff.setHorizontalAlignment(JLabel.CENTER);
+        buffPanel.add(nowLabelBuff);
         String[] tag = {"총버프력","축스탯", "축공격력", "각성스탯", "버프점수"};
         for(int i=0;i<5;i++){
             JLabel nowLabel = new JLabel(tag[i]);
             nowLabel.setFont(mapFont.get("bold"));
             nowLabel.setBackground(new Color(34, 32, 37));
             nowLabel.setForeground(Color.WHITE);
-            nowLabel.setBounds(0, 30*i, 80, 30);
+            nowLabel.setBounds(0, 30+30*i, 80, 30);
             nowLabel.setHorizontalAlignment(JLabel.CENTER);
             buffPanel.add(nowLabel);
-            if(i==4) break;
             JPanel guide = new JPanel();
             guide.setBackground(Color.DARK_GRAY);
             guide.setBounds(0, 30+30*i, 185, 2);
@@ -123,19 +254,19 @@ public class PanelResult extends JPanel {
         }
         JPanel guide = new JPanel();
         guide.setBackground(Color.DARK_GRAY);
-        guide.setBounds(80, 0, 2, 400);
+        guide.setBounds(80, 30, 2, 400);
         buffPanel.add(guide);
 
         JLabel buffTotal = new JLabel("");
-        buffTotal.setBounds(80, 0, 105, 30);
+        buffTotal.setBounds(80, 30, 105, 30);
         JLabel buffBlessStat = new JLabel("");
-        buffBlessStat.setBounds(80, 30, 105, 30);
+        buffBlessStat.setBounds(80, 60, 105, 30);
         JLabel buffBlessAtk = new JLabel("");
-        buffBlessAtk.setBounds(80, 60, 105, 30);
+        buffBlessAtk.setBounds(80, 90, 105, 30);
         JLabel buffCruxStat = new JLabel("");
-        buffCruxStat.setBounds(80, 90, 105, 30);
+        buffCruxStat.setBounds(80, 120, 105, 30);
         JLabel buffScore = new JLabel("");
-        buffScore.setBounds(80, 120, 105, 30);
+        buffScore.setBounds(80, 150, 105, 30);
 
         buffValueLabel.put("total", buffTotal);
         buffValueLabel.put("blessStat", buffBlessStat);
@@ -153,6 +284,13 @@ public class PanelResult extends JPanel {
         buffPanel.updateUI();
         this.updateUI();
 
+    }
+
+    public void resetBuffValue(){
+        buffValueLabel.forEach((k, v) ->{
+            v.setText("");
+        });
+        this.updateUI();
     }
 
     public void setBuffResult(HashMap<String, String> mapResultBuff){

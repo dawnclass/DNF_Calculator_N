@@ -1,6 +1,7 @@
 package org.dnf_calc_n.ui.main;
 
 import org.dnf_calc_n.Common;
+import org.dnf_calc_n.calculate.Buff;
 import org.dnf_calc_n.calculate.Damage;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -22,10 +23,12 @@ public class PanelCondition extends JPanel {
     JPanel root;
     Color bgColor = new Color(50, 46, 52);
     Damage damage;
+    Buff buff;
     PanelResult panelResult;
 
-    public PanelCondition(JPanel root, Damage damage, PanelResult panelResult){
+    public PanelCondition(JPanel root, Damage damage, Buff buff, PanelResult panelResult){
         this.panelResult =panelResult;
+        this.buff = buff;
         this.damage = damage;
         this.mapFont = common.loadFont();
         this.root = root;
@@ -43,6 +46,7 @@ public class PanelCondition extends JPanel {
             {1, 0},{1, 1},{1, 2},{1, 3},{1, 4},{1, 5},
             {2, 0},{2, 1},{2, 2},{2, 3},{2, 4},{2, 5}
     };
+    ArrayList<String> conditionTag = new ArrayList<>();
     HashMap<String, JLabel> labelConditions = new HashMap<>();
     HashMap<String, JCheckBox> widgetToggle = new HashMap<>();
     HashMap<String, JComboBox<String>> widgetGauge = new HashMap<>();
@@ -51,8 +55,23 @@ public class PanelCondition extends JPanel {
     public void setConditions(JSONObject conditionJson){
         resetConditionPanel();
         System.out.println(conditionJson.toJSONString());
-        int index = 0;
+        var keySet = conditionJson.keySet();
+        ArrayList<String> conditionTagCopy = (ArrayList<String>) conditionTag.clone();
+        int minusIndex = 0;
+        for(int i=0;i<conditionTagCopy.size();i++){  //순서 지키기용
+            if(!keySet.contains(conditionTagCopy.get(i))){
+                conditionTag.remove(i-minusIndex);
+                minusIndex++;
+            }
+        }
         for(Object k : conditionJson.keySet()){
+            int index;
+            if(conditionTag.contains(k)){
+                index = conditionTag.indexOf(k);
+            }else{
+                index = conditionTag.size();
+                conditionTag.add((String)k);
+            }
             int[] nowGrid = grid[index];
             String key = (String) k;
             JLabel nowLabel = new JLabel(key);
@@ -90,6 +109,14 @@ public class PanelCondition extends JPanel {
                                 damage.getArrayTotalCoolDown(),
                                 damage.getArrayTotalLevelDamageWithCool()
                         );
+                        panelResult.resetBuffValue();
+                        if(buff.getIsBuff()){
+                            System.out.println("버퍼 계산 시작");
+                            var levelingArray = damage.getArrayLeveling();
+                            buff.setLevelingArray(levelingArray);
+                            var mapResultBuff = buff.getMapResult();
+                            panelResult.setBuffResult(mapResultBuff);
+                        }
                     }
                 });
                 this.add(nowCheck);
@@ -102,10 +129,11 @@ public class PanelCondition extends JPanel {
                 for(int i=0;i<nowJson.size();i++){
                     nowArray[i] = (String) nowJson.get(i);
                 }
-                mapSelectCondition.putIfAbsent(key, nowArray[nowArray.length-1]);
+
                 JComboBox<String> nowCombo = new JComboBox<>(nowArray);
                 nowCombo.setFont(mapFont.get("normal"));
                 nowCombo.setBounds(145+nowGrid[0]*225, 3+nowGrid[1]*24, 65, 20);
+                mapSelectCondition.put(key, nowArray[nowArray.length-1]);
                 nowCombo.setSelectedItem(nowArray[nowArray.length-1]);
                 nowCombo.addItemListener(e -> {
                     if(e.getStateChange() == ItemEvent.SELECTED){
@@ -116,6 +144,13 @@ public class PanelCondition extends JPanel {
                                 damage.getArrayTotalCoolDown(),
                                 damage.getArrayTotalLevelDamageWithCool()
                         );
+                        panelResult.resetBuffValue();
+                        buff.setLevelingArray(damage.getArrayLeveling());
+                        if(buff.getIsBuff()){
+                            System.out.println("버퍼 계산 시작");
+                            var mapResultBuff = buff.getMapResult();
+                            panelResult.setBuffResult(mapResultBuff);
+                        }
                     }
                 });
                 this.add(nowCombo);

@@ -7,6 +7,7 @@ import java.lang.IndexOutOfBoundsException
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
+import kotlin.math.pow
 
 class Damage(private var equipmentData: JSONObject) {
 
@@ -19,8 +20,7 @@ class Damage(private var equipmentData: JSONObject) {
     private lateinit var arrayUpDamage : Array<Double>
     private var skillDamage = 1.0
 
-    val damageCondition = DamageCondition()
-
+    private val damageCondition = DamageCondition()
 
     private fun resetData(){
         mapResult.clear()
@@ -48,6 +48,7 @@ class Damage(private var equipmentData: JSONObject) {
         jsonConditionGauge.clear()
         isCubeForced = false
         isHPAlwaysLow = false
+        isMythExist = false
     }
 
     private fun resetCondition(){
@@ -60,10 +61,32 @@ class Damage(private var equipmentData: JSONObject) {
         totalDamageCondition = 0.0
     }
 
+    private lateinit var jobPassiveArray: JSONArray
+    private lateinit var jsonSave: JSONObject
+
     fun startDamageCalculate(mapEquipment: HashMap<String,String>) : Boolean {
         resetData()
-        val jsonSave = common.loadJsonObject("cache/selected.json")
-        job = (jsonSave["job"] ?: return false) as String
+        jsonSave = common.loadJsonObject("cache/selected.json")
+        job = "${(jsonSave["jobType"] ?: "귀검사(남)") as String} ${(jsonSave["job"] ?: "웨펀마스터") as String}"
+        println("선택한 직업 = $job")
+        val optionLevelString = (jsonSave["optionLv"] ?: "60") as String
+        optionLevel = when(optionLevelString){
+            "20" -> 1.5497
+            "40" -> 2.0885
+            "60" -> 2.6088
+            "80" -> 3.1106
+            else -> 2.6088
+        }
+        optionMythLevel = when(optionLevelString){
+            "20" -> 1.03*1.03
+            "40" -> 1.03*1.03*1.03*1.03
+            "60" -> 1.03*1.03*1.03*1.03*1.03*1.03
+            "80" -> 1.03*1.03*1.03*1.03*1.03*1.03*1.03*1.03
+            else -> 1.03*1.03*1.03*1.03
+        }
+        val jsonJob = common.loadJsonObject("resources/data/job_data.json")
+        jobPassiveArray = ((jsonJob[job] ?: return false) as JSONObject)["passive"] as JSONArray
+
         mapEquipment.forEach { (k, v) ->
             val index = when(k){
                 "77" -> 0
@@ -83,7 +106,126 @@ class Damage(private var equipmentData: JSONObject) {
             arrayEquipment[index] = v
         }
         loadEquipmentData()
+        loadCustomData()
         return true
+    }
+
+    private val customElementKey = arrayOf(
+        "enchantWeapon", "enchantAccessory",
+        "enchantMagic", "enchantTitle", "elementExtra"
+    )
+    private val customStatKey = arrayOf(
+        "enchantArmorStat", "enchantShoulder", "enchantArmorCritical", "enchantSub", "enchantEarring"
+    )
+    private fun loadCustomData(){
+        titlePetPercent = 0.0
+        pet2ndPassive = 0.0
+        customElement = arrayOf(0.0, 0.0, 0.0, 0.0)
+        when((jsonSave["title"] ?: "피증 15%") as String){
+            "피증 15%"->titlePetPercent+=0.15
+            "피증 10%"->titlePetPercent+=0.1
+            "모속 32"->{
+                for(i in 0 until 4) customElement[i] += 32.0
+            }
+        }
+        when((jsonSave["creature"] ?: "피증 18%") as String){
+            "피증 18%"->{
+                titlePetPercent+=0.18
+                pet2ndPassive+=1.0
+            }
+            "피증 15%"->titlePetPercent+=0.15
+
+        }
+
+        for(key in customElementKey){
+            val nowString = (jsonSave[key] ?: continue) as String
+            if(nowString == "") continue
+            val strArray = nowString.split(" ")
+            if(strArray.size==1){
+                for(i in 0 until 4) customElement[i] += strArray[0].toDouble()
+            }else{
+                val value = strArray[1].toDouble()
+                val indexArray = ArrayList<Int>()
+                if("화" in strArray[0]) indexArray.add(0)
+                if("수" in strArray[0]) indexArray.add(1)
+                if("명" in strArray[0]) indexArray.add(2)
+                if("암" in strArray[0]) indexArray.add(3)
+                if("모속" == strArray[0]) {
+                    indexArray.add(0)
+                    indexArray.add(1)
+                    indexArray.add(2)
+                    indexArray.add(3)
+                }
+                var multiValue = 1.0
+                when(key){  // 마부 2배 설정용
+                    "enchantAccessory" ->{
+                        multiValue += 2.0 // 악세는 기본적으로 3배수
+                        if(arrayEquipment.contains("21052")) multiValue += 1.0
+                        if(arrayEquipment.contains("22052")) multiValue += 1.0
+                        if(arrayEquipment.contains("23052")) multiValue += 1.0
+                    }
+                    "enchantMagic" -> if(arrayEquipment.contains("32052")) multiValue += 1.0
+                }
+                for(i in indexArray){
+                    customElement[i] += value * multiValue
+                }
+            }
+
+        }
+        customStat = arrayOf( //스탯 공 스증
+            0.0, 0.0, 1.0)
+        for(key in customStatKey){
+            val nowCustomStat = arrayOf(0.0, 0.0, 1.0)
+            val nowString = (jsonSave[key] ?: continue) as String
+            if("/" in nowString){
+                val strArray = nowString.split("/")
+                nowCustomStat[1] += strArray[0].toDouble()
+                nowCustomStat[0] += strArray[1].toDouble()
+            }else{
+                val strArray = nowString.split(" ")
+                if(strArray[0] == "스탯") nowCustomStat[0] += strArray[1].toDouble()
+                if(strArray[0] == "공") nowCustomStat[1] += strArray[1].toDouble()
+                if(strArray[0] == "스증") {
+                    when(strArray[1]){
+                        "2%" -> {
+                            nowCustomStat[2] *= 1.02
+                            nowCustomStat[1] += 10.0
+                            nowCustomStat[0] += 40.0
+                        }
+                        "1%" -> {
+                            nowCustomStat[2] *= 1.01
+                            nowCustomStat[1] += 30.0
+                        }
+                    }
+                }
+            }
+            var multiValue = 1.0
+            when(key){
+                "enchantArmorStat" -> {  // 상하의 2배수
+                    multiValue += 1.0
+                    if(arrayEquipment.contains("11052")) multiValue += 1.0
+                    if(arrayEquipment.contains("12052")) multiValue += 1.0
+                }
+                "enchantShoulder" -> {
+                    if(arrayEquipment.contains("13052")) multiValue += 1.0
+                }
+                "enchantArmorCritical" -> {  // 벨신 2배수
+                    multiValue += 1.0
+                    if(arrayEquipment.contains("14052")) multiValue += 1.0
+                    if(arrayEquipment.contains("15052")) multiValue += 1.0
+                }
+                "enchantSub" -> {
+                    if(arrayEquipment.contains("31052")) multiValue += 1.0
+                }
+                "enchantEarring" -> {
+                    if(arrayEquipment.contains("33052")) multiValue += 1.0
+                }
+            }
+            customStat[0] += nowCustomStat[0] * multiValue
+            customStat[1] += nowCustomStat[1] * multiValue
+            customStat[2] *= nowCustomStat[2].pow(multiValue)
+        }
+        this.skillDamage *= customStat[2]
     }
 
     private val simpleSumOptions = HashMap<String, Double>()
@@ -116,6 +258,7 @@ class Damage(private var equipmentData: JSONObject) {
 
             if(code == "14062") isCubeForced = true
             if(code == "21212") isHPAlwaysLow = true
+            if(code.length != 6 && code.substring(code.length-1) == "1") isMythExist = true
 
             val upDamage : JSONArray = nowJson["옵션피증"] as JSONArray
             for(i in 0 until upDamage.size){
@@ -172,6 +315,7 @@ class Damage(private var equipmentData: JSONObject) {
     private val jsonConditionGauge = JSONArray()
     private var isCubeForced = false
     private var isHPAlwaysLow = false
+    private var isMythExist = false
 
     private fun combineConditions(code: String, json: JSONArray){
         var reqType = json[0]
@@ -225,9 +369,9 @@ class Damage(private var equipmentData: JSONObject) {
                 if(applyType=="레벨"){
                     listArrayLeveling.add(parsedUpValue as JSONArray)
                 }else if(applyType=="쿨회복"){
-                    listArrayCoolDown.add(parsedUpValue as JSONArray)
-                }else if(applyType=="쿨감"){
                     listArrayCoolRecover.add(parsedUpValue as JSONArray)
+                }else if(applyType=="쿨감"){
+                    listArrayCoolDown.add(parsedUpValue as JSONArray)
                 }else if(applyType=="스증"){
                     listArraySkillDamage.add(parsedUpValue as JSONArray)
                 }
@@ -267,18 +411,26 @@ class Damage(private var equipmentData: JSONObject) {
 
                     val multi = ((reqMulti ?: 0.0) as Double)
                     val reg = strArray[strArray.size-1]
-                    if(reg=="감소"){
+                    if(reg=="감소" || reg=="미만" || reg=="이하"){
                         applyValueArray[0] = multi
-                        applyValueArray[1] = (multi/2).toInt().toDouble()
+                        for(i in 0 .. multi.toInt()){
+                            val nowReqValue = 100 - (i * (reqValue ?: 0.0) as Double)
+                            if(nowReqValue <= 61){
+                                applyValueArray[1] = (i - 1).toDouble()
+                                break
+                            }
+                        }
                         applyValueArray[2] = 0.0
-                    }else if(reg=="마다"){
+                    }else if(reg=="마다" || reg=="이상" || reg=="초과"){
                         applyValueArray[0] = 0.0
-                        applyValueArray[1] = (multi/2).toInt().toDouble()
+                        for(i in 0 .. multi.toInt()){
+                            val nowReqValue = i * (reqValue ?: 0.0) as Double
+                            if(nowReqValue >= 61){
+                                applyValueArray[1] = i.toDouble()
+                                break
+                            }
+                        }
                         applyValueArray[2] = multi
-                    }else if(reg=="미만" || reg=="이하"){
-                        applyValueArray[0] = 1.0
-                    }else if(reg=="이상" || reg=="초과"){
-                        applyValueArray[2] = 1.0
                     }else if(reg=="구간"){
                         applyValueArray[1] = 1.0
                     }
@@ -413,7 +565,7 @@ class Damage(private var equipmentData: JSONObject) {
     private val listArrayElementCondition = ArrayList<JSONArray>()
     private val statusDamageCondition = HashMap<String, Double>()
 
-    private var arrayLeveling = Array<Double>(19){0.0}
+    var arrayLeveling = Array<Double>(19){0.0}
     private var arrayCoolDown = Array<Double>(19){0.0}
     private var arrayCoolRecover = Array<Double>(19){0.0}
     private var arraySkillDamage = Array<Double>(19){1.0}
@@ -427,13 +579,18 @@ class Damage(private var equipmentData: JSONObject) {
     private var totalDamage = 0.0
 
     private var optionLevel = 2.6
+    private var optionMythLevel = 1.03*1.03*1.03*1.03
     private var titlePetPercent = 0.33
+    private var pet2ndPassive = 0.0
     private val baseElement = 13.0
     private var customElement = arrayOf(
         15.0+35*3+30+6+25+7,
         30.0+25,
         15.0+35*3+30+25,
         30.0+25
+    )
+    private var customStat = arrayOf(  //스탯 공 스증
+        0.0, 0.0, 1.0
     )
 
     private fun resetArrayData(){
@@ -478,12 +635,18 @@ class Damage(private var equipmentData: JSONObject) {
             for(i in now.indices) arraySkillDamage[i] *= (1+(now[i] as Double))
         }
         //println("arrayLeveling: "+arrayLeveling.contentToString())
-        //println("arrayCoolDown: "+arrayCoolDown.contentToString())
-        //println("arrayCoolRecover: "+arrayCoolRecover.contentToString())
+        // println("arrayCoolDown: "+arrayCoolDown.contentToString())
+        // println("arrayCoolRecover: "+arrayCoolRecover.contentToString())
         //println("arraySkillDamage: "+arraySkillDamage.contentToString())
         //println(jsonConditionToggle.toJSONString())
 
-        var totalSumDamage = totalDamage + totalDamageCondition
+        var passiveDamage = 1.0
+        for(i in arrayLeveling.indices){
+            passiveDamage *= ((arrayLeveling[i]+if(i==14){pet2ndPassive}else{0.0}) * (jobPassiveArray[i] as Double)) + 1.0
+        }
+        // println("passiveDamage = $passiveDamage")
+
+        var totalSumDamage = (totalDamage + totalDamageCondition) * optionLevel
 
         for(d in arrayUpDamage){
             totalSumDamage += (d * optionLevel)
@@ -506,14 +669,22 @@ class Damage(private var equipmentData: JSONObject) {
             }
         }
 
-        val stat = ((simpleSumOptions["스탯"] ?: 0.0) * 4.01 + 80250.0) / 80250.0
-        val atk = ((simpleSumOptions["공격력"] ?: 0.0) + 10000.0) / 10000.0
+        val stat = (((simpleSumOptions["스탯"] ?: 0.0)+customStat[0]) * 4.01 + 80250.0) / 80250.0
+        val atk = (((simpleSumOptions["공격력"] ?: 0.0)+customStat[1]) + 10000.0) / 10000.0
 
         val damage100 = (simpleSumOptions["단리옵"] ?: 0.0) + titlePetPercent + 1
         val damage105 = (totalSumDamage / 1000.0) * (1+titlePetPercent)
 
+        var mpOverSkillDamage = if(arrayEquipment.contains("15172")){  // 천재신발 마나 소모량 스증 전환
+            (simpleSumOptions["MP소모량"] ?: 0.0) * 0.05 + 1
+        }else{1.0}
+        if(mpOverSkillDamage > 1.25) mpOverSkillDamage = 1.25
+        //println("mpOverSkillDamage = $mpOverSkillDamage")
+        val mythOptionLevelDamage = if(isMythExist){1.0}else{optionMythLevel} // 노신화 보정 스증
+        println("mythOptionLevelDamage = $mythOptionLevelDamage")
+
         val sumDamage = ((damage100 + damage105) * skillDamage * stat * atk *
-                (1.05 + 0.0045 * maxElement)
+                (1.05 + 0.0045 * maxElement) * passiveDamage * mpOverSkillDamage * mythOptionLevelDamage
                 )
 
         val statusDamageMap = HashMap<String, Double>()
@@ -549,8 +720,12 @@ class Damage(private var equipmentData: JSONObject) {
             }else{
                 arrayTotalCoolDown[i] = 1 - (1 - arrayCoolDown[i]) / (1+arrayCoolRecover[i])
             }
-
-            arrayTotalLevelDamageWithCool[i] = arrayTotalLevelDamage[i]* (((1 / (1-arrayTotalCoolDown[i]))-1)*0.5+1)
+            val coolRealEff = (
+                    (1.0 / (1 - arrayTotalCoolDown[i]) - 1) /
+                    ((arrayTotalCoolDown[i] / 0.7)*(arrayTotalCoolDown[i] / 0.7)*(arrayTotalCoolDown[i] / 0.7) + 1)
+                    )
+            // println("coolRealEff = $coolRealEff")
+            arrayTotalLevelDamageWithCool[i] = arrayTotalLevelDamage[i] * (coolRealEff * 0.5 + 1.0)
         }
 
         println("arrayTotalLevelDamage: ${arrayTotalLevelDamage.contentToString()}")

@@ -11,6 +11,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ItemEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -82,9 +84,10 @@ public class WindowMainNew extends JFrame {
 
         // 영역 생성
         panelResult = new PanelResult(mainPanel);
-        panelCondition = new PanelCondition(mainPanel, damage, panelResult);
-        panelCustom = new PanelCustom(mainPanel, mapWidgetCombo);
+        panelCondition = new PanelCondition(mainPanel, damage, buff, panelResult);
         panelInfo = new PanelInfo(mainPanel, mapIconItem, mapIconExtra);
+        panelCustom = new PanelCustom(mainPanel, panelResult, panelInfo, panelCondition,
+                mapWidgetCombo, buff, damage);
         panelSelect = new PanelSelect(
                 mainPanel, panelResult, panelCondition,
                 equipmentData, mapIconItem, panelInfo,

@@ -1,11 +1,17 @@
 package org.dnf_calc_n.ui.main;
 
+import org.dnf_calc_n.Common;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.HashMap;
 
 public class PanelInfo extends JPanel {
+
+    Common common = new Common();
 
     public HashMap<String, String> mapEquipments = new HashMap<>();
     public HashMap<String, String> getMapEquipments(){
@@ -17,6 +23,7 @@ public class PanelInfo extends JPanel {
     }
     HashMap<String, ImageIcon> mapIconItem;
     HashMap<String, ImageIcon> mapIconExtra;
+
 
     public PanelInfo(JPanel root, HashMap<String, ImageIcon> mapIconItem,
                      HashMap<String, ImageIcon> mapIconExtra){
@@ -30,23 +37,45 @@ public class PanelInfo extends JPanel {
         updateInfo();
     }
 
-    public void setEquipment(String equipment){
+    String selectedMyth = "";
+
+    public boolean setEquipment(String equipment){
         String code;
+        boolean isMyth = false;
         if(equipment.length()==6){
             code = "77";
         }else{
             code = equipment.substring(0, 2);
+            if("1".equals(equipment.substring(equipment.length()-1))) isMyth = true;
         }
-        if(equipment.equals(mapEquipments.get(code))){
+        if(equipment.equals(mapEquipments.get(code))){  // 동일 장비 선택
             mapEquipments.remove(code);
-        }else{
-            mapEquipments.put(equipment.substring(0, 2), equipment);
+            common.deleteEquipmentCacheData(equipment, false);
+            if(isMyth){
+                selectedMyth = "";
+            }
+        }else{  //동일 장비 아님
+            if(isMyth && !"".equals(selectedMyth) && !selectedMyth.equals(code)){  //신화 중복
+                return false;
+            }else{
+                if(mapEquipments.get(code) != null){  //이미 템 있을경우 (교체)
+                    common.deleteEquipmentCacheData(mapEquipments.get(code), false);
+                    if(!isMyth && selectedMyth.equals(code)) selectedMyth = "";
+                }
+                mapEquipments.put(equipment.substring(0, 2), equipment);
+                common.saveCacheData("selected", "equipments", equipment);
+                if(isMyth) selectedMyth = code;
+            }
+
         }
-        System.out.println(mapEquipments);
+        // System.out.println(mapEquipments);
+        return true;
     }
 
     public void resetInfoPanel(){
+        common.deleteEquipmentCacheData("", true);
         mapEquipments.clear();
+        selectedMyth = "";
         updateInfo();
     }
 

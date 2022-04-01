@@ -108,6 +108,33 @@ public class Common {
         }
     }
 
+    public void deleteEquipmentCacheData(String value, boolean isReset){
+        try{
+            var parser = new JSONParser();
+            var reader = new BufferedReader(new FileReader("cache/selected.json"));
+            var json = (JSONObject) parser.parse(reader);
+            JSONArray equipmentArray;
+            if(isReset){
+                equipmentArray = new JSONArray();
+                json.put("equipments", equipmentArray);
+            }else{
+                try{
+                    equipmentArray = (JSONArray) json.get("equipments");
+                    equipmentArray.remove(value);
+                    json.put("equipments", equipmentArray);
+                }catch (Exception ignored){
+
+                }
+            }
+            var writer = new BufferedWriter(new FileWriter("cache/selected.json"));
+            writer.write(json.toJSONString());
+            writer.flush();
+            writer.close();
+        }catch (IOException | ParseException | NullPointerException e){
+            e.printStackTrace();
+        }
+    }
+
     public void saveCacheData(String file, String key, String value){
         try{
             var parser = new JSONParser();
@@ -117,9 +144,7 @@ public class Common {
                 JSONArray equipmentArray;
                 try{
                     equipmentArray = (JSONArray) json.get("equipments");
-                    if(equipmentArray.contains(value)){
-                        equipmentArray.remove(value);
-                    }else{
+                    if(!equipmentArray.contains(value)){
                         equipmentArray.add(value);
                     }
                 }catch (NullPointerException | ClassCastException e){

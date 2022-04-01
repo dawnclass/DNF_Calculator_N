@@ -45,6 +45,7 @@ public class PanelSelect extends JPanel {
     JLabel labelNowName, labelNowExplain;
 
     String selectedMyth = "";
+    JSONArray equipmentListJson;
 
     public PanelSelect(
             JPanel root, PanelResult panelResult, PanelCondition panelCondition,
@@ -70,6 +71,74 @@ public class PanelSelect extends JPanel {
         makeEquipmentButton();
         makeMouseOverNameLabel();
         makeFilterPanel();
+        makeExtraButton();
+
+        JSONObject jsonSave = common.loadJsonObject("cache/selected.json");
+        try{
+            equipmentListJson = (JSONArray) jsonSave.get("equipments");
+            for(Object o : equipmentListJson){
+                String code = (String) o;
+                boolean isPassed = panelInfo.setEquipment(code);
+                if(!isPassed){
+                    JLabel alertLabel = new JLabel("신화 중복 선택");
+                    alertLabel.setFont(mapFont.get("bold"));
+                    JOptionPane.showMessageDialog(
+                            null, alertLabel, "오류",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+            }
+            panelInfo.updateInfo();
+            calculationPackage();
+        }catch (NullPointerException e){
+            equipmentListJson = new JSONArray();
+        }
+    }
+
+    private void makeExtraButton(){
+        JButton resetButton = new JButton();
+        resetButton.setText("<html><body style='text-align:center;'>선택<br>초기화</body></html>");
+        resetButton.setHorizontalAlignment(JLabel.CENTER);
+        resetButton.setBackground(new Color(255, 157, 157));
+        resetButton.setForeground(Color.BLACK);
+        resetButton.setBounds(260, 10, 80, 50);
+        resetButton.setFont(mapFont.get("bold"));
+        resetButton.addActionListener(e -> {
+            String[] answers = {"초기화", "취소"};
+            JLabel alertLabel = new JLabel("정말로 초기화하겠습니까?");
+            alertLabel.setFont(mapFont.get("bold"));
+            int ans = JOptionPane.showOptionDialog(
+                    this, alertLabel, "확인 알림",
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE, null, answers, answers[0]
+            );
+            if(ans == 0){
+                panelInfo.resetInfoPanel();
+            }
+
+        });
+        this.add(resetButton);
+    }
+
+    private void calculationPackage(){
+        System.out.println("딜러 계산 시작");
+        damage.startDamageCalculate(panelInfo.getMapEquipments());
+        panelCondition.setConditions(damage.getConditionJson());
+        damage.applyCondition(panelCondition.getMapSelectCondition());
+        panelResult.setDamageArray(
+                damage.getArrayTotalLevelDamage(),
+                damage.getArrayTotalCoolDown(),
+                damage.getArrayTotalLevelDamageWithCool()
+        );
+        panelResult.resetBuffValue();
+        buff.setLevelingArray(damage.getArrayLeveling());
+        boolean isBuff = buff.startBuffCalculate(panelInfo.getMapEquipments());
+        if(isBuff){
+            System.out.println("버퍼 계산 시작");
+            mapResultBuff = buff.getMapResult();
+            panelResult.setBuffResult(mapResultBuff);
+        }
     }
 
     JTextField searchByName;
@@ -77,7 +146,7 @@ public class PanelSelect extends JPanel {
         panelFilter = new JPanel();
         panelFilter.setBackground(bgColor);
         panelFilter.setBorder(new EmptyBorder(0,0,0,0));
-        panelFilter.setBounds(255, 10, 190, 485);
+        panelFilter.setBounds(255, 70, 190, 485);
         panelFilter.setLayout(null);
         this.add(panelFilter);
 
@@ -113,21 +182,21 @@ public class PanelSelect extends JPanel {
 
         //태그 테마 생성부
         String[][] arrayTheme = {
-                {"화속강", "bae7af", "화속저", "bae7af", "쿨감", "afc4e7"},
-                {"수속강", "bae7af", "수속저", "bae7af", "회피", "afc4e7"},
-                {"명속강", "bae7af", "명속저", "bae7af", "보호막", "afc4e7"},
-                {"암속강", "bae7af", "암속저", "bae7af", "군중제어", "afc4e7"},
-                {"모속강", "bae7af", "모속저", "bae7af", "편의성", "afc4e7"},
-                {"중독", "eeafaf", "저HP", "f3cda0", "저MP", "f3cda0"},
-                {"화상", "eeafaf", "고HP", "f3cda0", "고MP", "f3cda0"},
-                {"빙결", "eeafaf", "HP소모", "f3cda0", "MP소모", "f3cda0"},
-                {"감전", "eeafaf", "HP회복", "f3cda0", "MP회복", "f3cda0"},
-                {"암흑", "eeafaf", "", "cccccc", "마법부여", "cccccc"},
-                {"출혈", "eeafaf", "기본숙련", "cccccc", "부자", "cccccc"},
-                {"저주", "eeafaf", "하급스킬", "cccccc", "콤보", "cccccc"},
-                {"기절", "eeafaf", "상급스킬", "cccccc", "파티", "cccccc"},
-                {"석화", "eeafaf", "무큐소모", "cccccc", "커맨드", "cccccc"},
-                {"수면", "eeafaf", "상변다수", "eeafaf", "커스텀", "cccccc"}
+                {"화속강", "bae7af", "화상", "eeafaf", "중독", "eeafaf"},
+                {"수속강", "bae7af", "빙결", "eeafaf", "저주", "eeafaf"},
+                {"명속강", "bae7af", "감전", "eeafaf", "기절", "eeafaf"},
+                {"암속강", "bae7af", "암흑", "eeafaf", "석화", "eeafaf"},
+                {"모속강", "bae7af", "출혈", "eeafaf", "수면", "eeafaf"},
+                {"쿨감", "afc4e7", "저HP", "f3cda0", "저MP", "f3cda0"},
+                {"방어", "afc4e7", "고HP", "f3cda0", "고MP", "f3cda0"},
+                {"유틸", "afc4e7", "HP회복", "f3cda0", "MP회복", "f3cda0"},
+                {"마법부여", "cccccc", "부자", "cccccc", "MP소모", "f3cda0"},
+                {"무큐", "cccccc", "콤보", "cccccc", "커맨드", "cccccc"},
+                {"레벨링", "cccccc", "파티", "cccccc", "카운터", "cccccc"},
+                {"평타", "cccccc", "기본기", "cccccc", "상급기", "cccccc"},
+                {"신화", "ddaadd", "산물", "ddaadd", "커스텀", "ddaadd"},
+                {"", "cccccc", "", "cccccc", "", "cccccc"},
+                {"", "ddaadd", "", "eeafaf", "", "cccccc"}
                 //
         };
         Color test = new Color(255, 255, 255);
@@ -253,38 +322,18 @@ public class PanelSelect extends JPanel {
                 @Override
                 public void mouseReleased(MouseEvent e){
                     // System.out.println("눌림 : "+code);
-                    if(code.length()!=6 && "1".equals(code.substring(code.length()-1))){
-                        String nowPart = code.substring(0, 2);
-                        if(!nowPart.equals(selectedMyth) && !"".equals(selectedMyth)){
-                            JLabel alertLabel = new JLabel("신화 중복 선택");
-                            alertLabel.setFont(mapFont.get("bold"));
-                            JOptionPane.showMessageDialog(
-                                    null, alertLabel, "오류",
-                                    JOptionPane.ERROR_MESSAGE
-                            );
-                            return;
-                        }else{
-                            selectedMyth = nowPart;
-                        }
+                    boolean isPassed = panelInfo.setEquipment(code);
+                    if(!isPassed){
+                        JLabel alertLabel = new JLabel("신화 중복 선택");
+                        alertLabel.setFont(mapFont.get("bold"));
+                        JOptionPane.showMessageDialog(
+                                null, alertLabel, "오류",
+                                JOptionPane.ERROR_MESSAGE
+                        );
+                        return;
                     }
-                    panelInfo.setEquipment(code);
-                    boolean isBuff = buff.startBuffCalculate(panelInfo.getMapEquipments());
-                    if(isBuff){
-                        System.out.println("버퍼 계산 시작");
-                        mapResultBuff = buff.getMapResult();
-                        panelResult.setBuffResult(mapResultBuff);
-                    }
-                    System.out.println("딜러 계산 시작");
-                    damage.startDamageCalculate(panelInfo.getMapEquipments());
-                    panelCondition.setConditions(damage.getConditionJson());
-                    damage.applyCondition(panelCondition.getMapSelectCondition());
-                    panelResult.setDamageArray(
-                            damage.getArrayTotalLevelDamage(),
-                            damage.getArrayTotalCoolDown(),
-                            damage.getArrayTotalLevelDamageWithCool()
-                    );
-
                     panelInfo.updateInfo();
+                    calculationPackage();
                 }
             });
             panelSelectItem.add(btnNow, frameConstraints);
@@ -403,16 +452,28 @@ class Equipment implements Comparable<Equipment>{
 
     private String code;
     private int num;
+    private int set;
 
     public Equipment(String code){
         this.code = code;
         num = Integer.parseInt(code.substring(code.length()-1));
+        if(code.length()==5){
+            set = Integer.parseInt(code.substring(2, 4));
+        }else if(code.length()==8){
+            set = Integer.parseInt(code.substring(2, 7));
+        }else{
+            set = Integer.parseInt(code.substring(3, 6));
+        }
     }
 
     @Override
     public int compareTo(Equipment equipment) {
         if(equipment.num < num){
-            return 1;
+            if(equipment.set < set){
+                return 2;
+            }else{
+                return 1;
+            }
         } else if (equipment.num > num){
             return -1;
         }
