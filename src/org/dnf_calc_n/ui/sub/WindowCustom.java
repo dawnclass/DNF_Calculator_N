@@ -34,7 +34,6 @@ public class WindowCustom extends JFrame {
         customPanel.setBackground(new Color(34, 32, 37));
         customPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(customPanel);
-        customPanel.setLayout(null);
 
         makeCustomWidget();
         customPanel.updateUI();

@@ -135,7 +135,7 @@ public class Common {
         }
     }
 
-    public void saveCacheData(String file, String key, String value){
+    public void saveCacheData(String file, String key, Object value){
         try{
             var parser = new JSONParser();
             var reader = new BufferedReader(new FileReader("cache/"+file+".json"));

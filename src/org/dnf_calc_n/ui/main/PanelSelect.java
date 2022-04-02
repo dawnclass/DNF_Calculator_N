@@ -4,6 +4,8 @@ import org.dnf_calc_n.Common;
 import org.dnf_calc_n.calculate.Buff;
 import org.dnf_calc_n.calculate.Damage;
 import org.dnf_calc_n.ui.component.RoundButton;
+import org.dnf_calc_n.ui.sub.WindowCustom;
+import org.dnf_calc_n.ui.sub.WindowSave;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -43,9 +45,11 @@ public class PanelSelect extends JPanel {
     Color bgColor = new Color(50, 46, 52);
     Color sectionColor = new Color(34, 32, 37);
     JLabel labelNowName, labelNowExplain;
+    WindowSave windowSave;
 
     String selectedMyth = "";
     JSONArray equipmentListJson;
+    PanelSelect panelSelect;
 
     public PanelSelect(
             JPanel root, PanelResult panelResult, PanelCondition panelCondition,
@@ -53,6 +57,7 @@ public class PanelSelect extends JPanel {
             PanelInfo panelInfo,
             Buff buff, Damage damage
     ){
+        this.panelSelect = this;
         this.panelResult = panelResult;
         this.panelCondition = panelCondition;
         mapFont = common.loadFont();
@@ -102,7 +107,7 @@ public class PanelSelect extends JPanel {
         resetButton.setHorizontalAlignment(JLabel.CENTER);
         resetButton.setBackground(new Color(255, 157, 157));
         resetButton.setForeground(Color.BLACK);
-        resetButton.setBounds(260, 10, 80, 50);
+        resetButton.setBounds(265, 10, 80, 50);
         resetButton.setFont(mapFont.get("bold"));
         resetButton.addActionListener(e -> {
             String[] answers = {"초기화", "취소"};
@@ -119,6 +124,25 @@ public class PanelSelect extends JPanel {
 
         });
         this.add(resetButton);
+
+        JButton saveButton = new JButton();
+        saveButton.setText("<html><body style='text-align:center;'>세이브<br>로드</body></html>");
+        saveButton.setHorizontalAlignment(JLabel.CENTER);
+        saveButton.setBackground(new Color(157, 214, 255));
+        saveButton.setForeground(Color.BLACK);
+        saveButton.setBounds(357, 10, 80, 50);
+        saveButton.setFont(mapFont.get("bold"));
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try{
+                    windowSave.dispose();
+                }catch (Exception ignored){}
+                windowSave = new WindowSave(panelSelect);
+                windowSave.startSave();
+            }
+        });
+        this.add(saveButton);
     }
 
     private void calculationPackage(){
