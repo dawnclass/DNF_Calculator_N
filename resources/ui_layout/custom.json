@@ -28,6 +28,8 @@
       "피증 15%", "피증 10%", "모속 32", "없음"]},
     {"tag": "creature", "text": "크리쳐", "position": [1, 1], "values": [
       "피증 18%", "피증 15%", "없음"]},
+    {"tag": "party", "text": "파티여부", "position": [1, 3], "values": [
+      "솔플", "파티(버퍼O)"]},
 
     {"tag": "enchantBuffArmor12", "text": "상하마부", "position": [2, 0], "values": [
       "100/100", "50/75"]},

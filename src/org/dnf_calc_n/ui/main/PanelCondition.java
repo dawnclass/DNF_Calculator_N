@@ -104,19 +104,20 @@ public class PanelCondition extends JPanel {
                             mapSelectCondition.put(key, "false");
                         }
                         damage.applyCondition(mapSelectCondition);
+                        buff.setLevelingArray(damage.getArrayLeveling());
+                        panelResult.resetBuffValue();
+                        if(buff.getIsBuff()){
+                            System.out.println("버퍼 계산 시작");
+                            var mapResultBuff = buff.getMapResult();
+                            panelResult.setBuffResult(mapResultBuff);
+                            double buffAdditionalStat = buff.getAdditionalDealerStat();
+                            damage.setAdditionalStat(buffAdditionalStat);
+                        }
                         panelResult.setDamageArray(
                                 damage.getArrayTotalLevelDamage(),
                                 damage.getArrayTotalCoolDown(),
                                 damage.getArrayTotalLevelDamageWithCool()
                         );
-                        panelResult.resetBuffValue();
-                        if(buff.getIsBuff()){
-                            System.out.println("버퍼 계산 시작");
-                            var levelingArray = damage.getArrayLeveling();
-                            buff.setLevelingArray(levelingArray);
-                            var mapResultBuff = buff.getMapResult();
-                            panelResult.setBuffResult(mapResultBuff);
-                        }
                     }
                 });
                 this.add(nowCheck);
@@ -139,18 +140,20 @@ public class PanelCondition extends JPanel {
                     if(e.getStateChange() == ItemEvent.SELECTED){
                         mapSelectCondition.put(key, (String) nowCombo.getSelectedItem());
                         damage.applyCondition(mapSelectCondition);
+                        buff.setLevelingArray(damage.getArrayLeveling());
+                        panelResult.resetBuffValue();
+                        if(buff.getIsBuff()){
+                            System.out.println("버퍼 계산 시작");
+                            var mapResultBuff = buff.getMapResult();
+                            panelResult.setBuffResult(mapResultBuff);
+                            double buffAdditionalStat = buff.getAdditionalDealerStat();
+                            damage.setAdditionalStat(buffAdditionalStat);
+                        }
                         panelResult.setDamageArray(
                                 damage.getArrayTotalLevelDamage(),
                                 damage.getArrayTotalCoolDown(),
                                 damage.getArrayTotalLevelDamageWithCool()
                         );
-                        panelResult.resetBuffValue();
-                        buff.setLevelingArray(damage.getArrayLeveling());
-                        if(buff.getIsBuff()){
-                            System.out.println("버퍼 계산 시작");
-                            var mapResultBuff = buff.getMapResult();
-                            panelResult.setBuffResult(mapResultBuff);
-                        }
                     }
                 });
                 this.add(nowCombo);

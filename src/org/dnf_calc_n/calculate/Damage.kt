@@ -19,10 +19,12 @@ class Damage(private var equipmentData: JSONObject) {
 
     private lateinit var arrayUpDamage : Array<Double>
     private var skillDamage = 1.0
+    private var isBuffer = false
 
     private val damageCondition = DamageCondition()
 
     private fun resetData(){
+        isBuffer = false
         mapResult.clear()
         arrayEquipment = Array(13){""}
         arrayUpDamage = Array(4){0.0}
@@ -59,6 +61,7 @@ class Damage(private var equipmentData: JSONObject) {
         listArrayElementCondition.clear()
         statusDamageCondition.clear()
         totalDamageCondition = 0.0
+        additionalStat = 0.0
     }
 
     private lateinit var jobPassiveArray: JSONArray
@@ -69,6 +72,9 @@ class Damage(private var equipmentData: JSONObject) {
         jsonSave = common.loadJsonObject("cache/selected.json")
         job = "${(jsonSave["jobType"] ?: "귀검사(남)") as String} ${(jsonSave["job"] ?: "웨펀마스터") as String}"
         println("선택한 직업 = $job")
+        if(job == "프리스트(여) 크루세이더" || job =="마법사(여) 인챈트리스"){
+            isBuffer = true
+        }
         val optionLevelString = (jsonSave["optionLv"] ?: "60") as String
         optionLevel = when(optionLevelString){
             "20" -> 1.5497
@@ -118,9 +124,26 @@ class Damage(private var equipmentData: JSONObject) {
         "enchantArmorStat", "enchantShoulder", "enchantArmorCritical", "enchantSub", "enchantEarring"
     )
     private fun loadCustomData(){
+        applyStat = 80000.0
+        applyAtk = 10000.0
         titlePetPercent = 0.0
         pet2ndPassive = 0.0
         customElement = arrayOf(0.0, 0.0, 0.0, 0.0)
+        if(isBuffer){
+            applyStat = basicStatSoloBuffer
+            applyAtk = basicAtkSolo
+        }else{
+            if(((jsonSave["party"] ?: "파티(버퍼O)") as String) == "파티(버퍼O)"){
+                applyStat = basicStatBuff
+                applyAtk = basicAtkBuff
+            }else{
+                applyStat = basicStatSolo
+                applyAtk = basicAtkSolo
+            }
+        }
+        println("applyStat = : $applyStat")
+        println("applyAtk = : $applyAtk")
+
         when((jsonSave["title"] ?: "피증 15%") as String){
             "피증 15%"->titlePetPercent+=0.15
             "피증 10%"->titlePetPercent+=0.1
@@ -201,8 +224,8 @@ class Damage(private var equipmentData: JSONObject) {
             }
             var multiValue = 1.0
             when(key){
-                "enchantArmorStat" -> {  // 상하의 2배수
-                    multiValue += 1.0
+                "enchantArmorStat" -> {  // 상하의  2배수
+                    multiValue += 1
                     if(arrayEquipment.contains("11052")) multiValue += 1.0
                     if(arrayEquipment.contains("12052")) multiValue += 1.0
                 }
@@ -210,7 +233,7 @@ class Damage(private var equipmentData: JSONObject) {
                     if(arrayEquipment.contains("13052")) multiValue += 1.0
                 }
                 "enchantArmorCritical" -> {  // 벨신 2배수
-                    multiValue += 1.0
+                    multiValue += 1
                     if(arrayEquipment.contains("14052")) multiValue += 1.0
                     if(arrayEquipment.contains("15052")) multiValue += 1.0
                 }
@@ -593,6 +616,17 @@ class Damage(private var equipmentData: JSONObject) {
         0.0, 0.0, 1.0
     )
 
+    private val enchantMaxStat = 0.0
+    private val enchantMaxAtk = 0.0
+    private val basicStatSolo = 15000.0 - 4 * (40*2+50*3+150)
+    private val basicAtkSolo = 3000.0 - (70*2+100)
+    private val basicStatSoloBuffer = 25000.0 - 4 * (40*2+50*3+150)
+    private val basicStatBuff = 80000.0 - 4 * (40*2+50*3+150)
+    private val basicAtkBuff = 10000.0 - (70*2+100)
+    private var applyStat = 80000.0 - 4 * (40*2+50*3+150)
+    private var applyAtk = 10000.0 - (70*2+100)
+    var additionalStat = 0.0
+
     private fun resetArrayData(){
         arrayLeveling = Array<Double>(19){0.0}
         arrayCoolDown = Array<Double>(19){0.0}
@@ -669,8 +703,8 @@ class Damage(private var equipmentData: JSONObject) {
             }
         }
 
-        val stat = (((simpleSumOptions["스탯"] ?: 0.0)+customStat[0]) * 4.01 + 80250.0) / 80250.0
-        val atk = (((simpleSumOptions["공격력"] ?: 0.0)+customStat[1]) + 10000.0) / 10000.0
+        val stat = (((simpleSumOptions["스탯"] ?: 0.0)+customStat[0] + additionalStat) * 4.08 + applyStat) / applyStat
+        val atk = (((simpleSumOptions["공격력"] ?: 0.0)+customStat[1]) + applyAtk) / applyAtk
 
         val damage100 = (simpleSumOptions["단리옵"] ?: 0.0) + titlePetPercent + 1
         val damage105 = (totalSumDamage / 1000.0) * (1+titlePetPercent)

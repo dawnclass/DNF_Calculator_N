@@ -166,16 +166,11 @@ public class PanelCustom extends JPanel {
     }
 
     public void calculationPackage(){
+        panelResult.resetBuffValue();
         System.out.println("딜러 계산 시작");
         damage.startDamageCalculate(panelInfo.getMapEquipments());
         panelCondition.setConditions(damage.getConditionJson());
         damage.applyCondition(panelCondition.getMapSelectCondition());
-        panelResult.setDamageArray(
-                damage.getArrayTotalLevelDamage(),
-                damage.getArrayTotalCoolDown(),
-                damage.getArrayTotalLevelDamageWithCool()
-        );
-        panelResult.resetBuffValue();
         buff.setLevelingArray(damage.getArrayLeveling());
         boolean isBuff = buff.startBuffCalculate(panelInfo.getMapEquipments());
         buff.setBuff(isBuff);
@@ -183,7 +178,14 @@ public class PanelCustom extends JPanel {
             System.out.println("버퍼 계산 시작");
             var mapResultBuff = buff.getMapResult();
             panelResult.setBuffResult(mapResultBuff);
+            double buffAdditionalStat = buff.getAdditionalDealerStat();
+            damage.setAdditionalStat(buffAdditionalStat);
         }
+        panelResult.setDamageArray(
+                damage.getArrayTotalLevelDamage(),
+                damage.getArrayTotalCoolDown(),
+                damage.getArrayTotalLevelDamageWithCool()
+        );
     }
 
 }

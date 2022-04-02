@@ -122,23 +122,25 @@ public class PanelSelect extends JPanel {
     }
 
     private void calculationPackage(){
+        panelResult.resetBuffValue();
         System.out.println("딜러 계산 시작");
         damage.startDamageCalculate(panelInfo.getMapEquipments());
         panelCondition.setConditions(damage.getConditionJson());
         damage.applyCondition(panelCondition.getMapSelectCondition());
-        panelResult.setDamageArray(
-                damage.getArrayTotalLevelDamage(),
-                damage.getArrayTotalCoolDown(),
-                damage.getArrayTotalLevelDamageWithCool()
-        );
-        panelResult.resetBuffValue();
         buff.setLevelingArray(damage.getArrayLeveling());
         boolean isBuff = buff.startBuffCalculate(panelInfo.getMapEquipments());
         if(isBuff){
             System.out.println("버퍼 계산 시작");
             mapResultBuff = buff.getMapResult();
             panelResult.setBuffResult(mapResultBuff);
+            double buffAdditionalStat = buff.getAdditionalDealerStat();
+            damage.setAdditionalStat(buffAdditionalStat);
         }
+        panelResult.setDamageArray(
+                damage.getArrayTotalLevelDamage(),
+                damage.getArrayTotalCoolDown(),
+                damage.getArrayTotalLevelDamageWithCool()
+        );
     }
 
     JTextField searchByName;

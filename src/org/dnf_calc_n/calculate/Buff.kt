@@ -257,10 +257,13 @@ class Buff(private var equipmentData: JSONObject) {
 
     var levelingArray = Array<Double>(19){0.0}
 
+    var additionalDealerStat = 0.0
+
     private fun calculateBuff(){
         // println("버퍼 계산 시작")
         // println("levelingArray = ${levelingArray.contentToString()}")
         // mapValueSum.forEach { (t, v) -> println("$t = $v") }
+        additionalDealerStat = 0.0
         var upStat = 0.0
         var upStatFix = 0.0
         var auraStat = 0.0
@@ -277,6 +280,14 @@ class Buff(private var equipmentData: JSONObject) {
         val cruxStatPercent = (mapValueSum["1각%"] ?: 0.0)
 
         var basicStat = 0.0
+
+        auraStat+=(mapSkillData["1각패오라"]!![pas1Lv+levelingArray[10].toInt()] as Double)
+        upStat += ((mapSkillData["전직패"]!![pas0Lv] as Double) -
+                (mapSkillData["전직패"]!![this.pas0Lv] as Double))
+        upStat += ((mapSkillData["1각패"]!![pas1Lv+levelingArray[10].toInt()] as Double) -
+                (mapSkillData["1각패"]!![pas1Lv] as Double))
+        upStat += ((mapSkillData["진각패"]!![pasNeoLv+levelingArray[17].toInt()] as Double) -
+                (mapSkillData["진각패"]!![pasNeoLv] as Double))
 
         when(job){
             "프리스트(남) 크루세이더"->{
@@ -298,6 +309,7 @@ class Buff(private var equipmentData: JSONObject) {
                 upStatFix+=(mapValueSum["신실"] ?: 0.0)
                 upStatFix+=(mapValueSum["계시"] ?: 0.0)
                 upStat+=(mapValueSum["지능"] ?: 0.0)
+                additionalDealerStat+=upStat+upStatFix
             }
             "마법사(여) 인챈트리스"->{
                 basicStat = BASIC_STAT_INT + customStatInt
@@ -307,16 +319,9 @@ class Buff(private var equipmentData: JSONObject) {
                 upStat+=(mapValueSum["지능"] ?: 0.0)
                 upStat += ((mapSkillData["2각패"]!![pas2Lv+levelingArray[14].toInt()] as Double) -
                         (mapSkillData["2각패"]!![pas2Lv] as Double))
+                additionalDealerStat+=upStat+upStatFix
             }
         }
-
-        auraStat+=(mapSkillData["1각패오라"]!![pas1Lv+levelingArray[10].toInt()] as Double)
-        upStat += ((mapSkillData["전직패"]!![pas0Lv] as Double) -
-                (mapSkillData["전직패"]!![this.pas0Lv] as Double))
-        upStat += ((mapSkillData["1각패"]!![pas1Lv+levelingArray[10].toInt()] as Double) -
-                (mapSkillData["1각패"]!![pas1Lv] as Double))
-        upStat += ((mapSkillData["진각패"]!![pasNeoLv+levelingArray[17].toInt()] as Double) -
-                (mapSkillData["진각패"]!![pasNeoLv] as Double))
 
         var totalBuff = basicBuff
         for(b in arrayUpBuff){
