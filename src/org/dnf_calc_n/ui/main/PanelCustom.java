@@ -6,6 +6,7 @@ import org.dnf_calc_n.calculate.Damage;
 import org.dnf_calc_n.data.LoadJob;
 import org.dnf_calc_n.ui.component.RoundButton;
 import org.dnf_calc_n.ui.sub.WindowCustom;
+import org.json.simple.JSONObject;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -70,9 +71,9 @@ public class PanelCustom extends JPanel {
         customPanel.setLayout(null);
         customPanel.setBounds(270, 10, 190, 150);
         root.add(customPanel);
-        var json = common.loadJsonObject("cache/selected.json");
+        JSONObject json = common.loadJsonObject("cache/selected.json");
 
-        var nowLabelOption = new JLabel();
+        JLabel nowLabelOption = new JLabel();
         nowLabelOption.setText("장비옵션레벨 :");
         nowLabelOption.setFont(mapFont.get("bold"));
         nowLabelOption.setForeground(Color.WHITE);
@@ -86,13 +87,13 @@ public class PanelCustom extends JPanel {
         }catch (Exception e){
             nowOptionLv = "60";
         }
-        var optionLvCombo = new JComboBox<>(optionLvs);
+        JComboBox<String> optionLvCombo = new JComboBox<>(optionLvs);
         optionLvCombo.setBounds(110, 70, 70, 20);
         optionLvCombo.setFont(mapFont.get("normal"));
         optionLvCombo.setSelectedItem(nowOptionLv);
         optionLvCombo.addItemListener(e -> {
             if(e.getStateChange() == ItemEvent.SELECTED){
-                var optionLv = (String) optionLvCombo.getSelectedItem();
+                String optionLv = (String) optionLvCombo.getSelectedItem();
                 common.saveCacheData("selected", "optionLv", optionLv);
                 calculationPackage();
             }
@@ -100,7 +101,7 @@ public class PanelCustom extends JPanel {
         customPanel.add(optionLvCombo);
 
 
-        var nowLabel = new JLabel();
+        JLabel nowLabel = new JLabel();
         nowLabel.setText(" 직업 :");
         nowLabel.setFont(mapFont.get("bold"));
         nowLabel.setForeground(Color.WHITE);
@@ -119,19 +120,19 @@ public class PanelCustom extends JPanel {
         }catch (Exception e){
             nowJobType = "귀검사(여)";
         }
-        var jobCombo = new JComboBox<>(mapJob.get(nowJobType));
+        JComboBox<String> jobCombo = new JComboBox<>(mapJob.get(nowJobType));
         jobCombo.setBounds(60, 40, 110, 20);
         jobCombo.setFont(mapFont.get("normal"));
 
-        var jobTypeCombo = new JComboBox<>(jobTypes);
+        JComboBox<String> jobTypeCombo = new JComboBox<>(jobTypes);
         jobTypeCombo.setBounds(60, 10, 110, 20);
         jobTypeCombo.setFont(mapFont.get("normal"));
         jobTypeCombo.addItemListener(e -> {
             if(e.getStateChange() == ItemEvent.SELECTED){
-                var jobType = (String) jobTypeCombo.getSelectedItem();
+                String jobType = (String) jobTypeCombo.getSelectedItem();
                 common.saveCacheData("selected", "jobType", jobType);
                 // System.out.println(jobType);
-                var jobArray = mapJob.get(jobType);
+                String[] jobArray = mapJob.get(jobType);
                 // System.out.println(Arrays.toString(jobArray));
                 jobCombo.removeAllItems();
                 for(String job : jobArray) jobCombo.insertItemAt(job, jobCombo.getItemCount());
@@ -144,7 +145,7 @@ public class PanelCustom extends JPanel {
         // 초기 타입 설정 후 리스너 적용
         jobCombo.addItemListener(e -> {
             if(e.getStateChange() == ItemEvent.SELECTED){
-                var job = (String) jobCombo.getSelectedItem();
+                String job = (String) jobCombo.getSelectedItem();
                 // System.out.println(job);
                 common.saveCacheData("selected", "job", job);
                 calculationPackage();
@@ -176,7 +177,7 @@ public class PanelCustom extends JPanel {
         buff.setBuff(isBuff);
         if(isBuff){
             System.out.println("버퍼 계산 시작");
-            var mapResultBuff = buff.getMapResult();
+            HashMap<String, String> mapResultBuff = buff.getMapResult();
             panelResult.setBuffResult(mapResultBuff);
             double buffAdditionalStat = buff.getAdditionalDealerStat();
             damage.setAdditionalStat(buffAdditionalStat);

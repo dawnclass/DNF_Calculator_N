@@ -64,7 +64,7 @@ public class WindowMainNew extends JFrame {
 
     public WindowMainNew() {
         // 초기 데이터 로드
-        var loadImage = new LoadImage();
+        LoadImage loadImage = new LoadImage();
         jsonCache = common.loadJsonObject("cache/selected.json");
         equipmentData = common.loadJsonObject("resources/data/equipment_data.json");
         buff = new Buff(equipmentData);

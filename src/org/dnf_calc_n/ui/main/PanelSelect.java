@@ -303,7 +303,7 @@ public class PanelSelect extends JPanel {
         }
         for(int i=0;i<len;i++){
             String code = listEquipment.get(i).toString();
-            var btnNow = new JButton();
+            JButton btnNow = new JButton();
             btnNow.setBackground(new Color(34, 32, 37));
             btnNow.setIcon(mapIconItem.get(code));
             btnNow.setBorder(new EmptyBorder(1,border,1,border));
@@ -365,7 +365,7 @@ public class PanelSelect extends JPanel {
             panelSelectItem.add(btnNow, frameConstraints);
         }
         if(len < 8){
-            var gap = new JLabel();
+            JLabel gap = new JLabel();
             gap.setBackground(new Color(34, 32, 37));
             frameConstraints.gridx = len;
             frameConstraints.gridy = 0;
@@ -373,7 +373,7 @@ public class PanelSelect extends JPanel {
             panelSelectItem.add(gap, frameConstraints);
         }
         if(len < 73){
-            var gap = new JLabel();
+            JLabel gap = new JLabel();
             gap.setBackground(new Color(34, 32, 37));
             frameConstraints.gridx = 7;
             frameConstraints.gridy = len/8+1;
@@ -393,7 +393,7 @@ public class PanelSelect extends JPanel {
     private void makePartButton(){
         for(int i=0;i<13;i++){
             final String tag = TAGS[i];
-            var btnNow = new JButton(NAMES[i]);
+            JButton btnNow = new JButton(NAMES[i]);
             btnNow.setBackground(new Color(255, 255, 255));
             btnNow.setFont(new Font("", Font.PLAIN, 12));
             btnNow.setBorder(new BevelBorder(BevelBorder.RAISED));

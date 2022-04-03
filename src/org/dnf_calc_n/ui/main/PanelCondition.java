@@ -15,6 +15,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 public class PanelCondition extends JPanel {
 
@@ -55,7 +56,7 @@ public class PanelCondition extends JPanel {
     public void setConditions(JSONObject conditionJson){
         resetConditionPanel();
         System.out.println(conditionJson.toJSONString());
-        var keySet = conditionJson.keySet();
+        Set keySet = conditionJson.keySet();
         ArrayList<String> conditionTagCopy = (ArrayList<String>) conditionTag.clone();
         int minusIndex = 0;
         for(int i=0;i<conditionTagCopy.size();i++){  //순서 지키기용
@@ -108,7 +109,7 @@ public class PanelCondition extends JPanel {
                         panelResult.resetBuffValue();
                         if(buff.getIsBuff()){
                             System.out.println("버퍼 계산 시작");
-                            var mapResultBuff = buff.getMapResult();
+                            HashMap<String, String> mapResultBuff = buff.getMapResult();
                             panelResult.setBuffResult(mapResultBuff);
                             double buffAdditionalStat = buff.getAdditionalDealerStat();
                             damage.setAdditionalStat(buffAdditionalStat);
@@ -144,7 +145,7 @@ public class PanelCondition extends JPanel {
                         panelResult.resetBuffValue();
                         if(buff.getIsBuff()){
                             System.out.println("버퍼 계산 시작");
-                            var mapResultBuff = buff.getMapResult();
+                            HashMap<String, String> mapResultBuff = buff.getMapResult();
                             panelResult.setBuffResult(mapResultBuff);
                             double buffAdditionalStat = buff.getAdditionalDealerStat();
                             damage.setAdditionalStat(buffAdditionalStat);

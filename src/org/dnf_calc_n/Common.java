@@ -21,33 +21,6 @@ import java.util.HashMap;
 
 public class Common {
 
-    public String convertCodeToExplain(String code){
-        return switch (code) {
-            case "D" -> "데미지 증가";
-            case "DA" -> "데미지 추가 증가";
-            case "CD" -> "크리티컬 데미지 증가";
-            case "CDA" -> "크리티컬 데미지 추가 증가";
-            case "AD" -> "추가 데미지";
-            case "AED" -> "속성 추가 데미지";
-            case "TD" -> "모든 공격력 증가";
-            case "A" -> "물리, 마법, 독립공격력 증가";
-            case "AP" -> "물리, 마법, 독립공격력 % 증가";
-            case "S" -> "힘, 지능 증가";
-            case "SP" -> "힘, 지능 %증가";
-            case "E" -> "속성 강화 증가";
-            case "DD" -> "지속 피해";
-            case "SD" -> "스킬 공격력 증가";
-            case "CR" -> "크리티컬 확률 증가";
-            case "AS" -> "공격 속도 증가";
-            case "MS" -> "이동 속도 증가";
-            case "LVL" -> "스킬 레벨 증가";
-            case "LVD" -> "구간 스킬 공격력 증가";
-            case "CTD" -> "쿨타임 감소";
-            case "CRD" -> "쿨타임 회복 속도 증가";
-            default -> "오류";
-        };
-    }
-
     public HashMap<String, Font> loadFont(){
         HashMap<String, Font> fontMap = new HashMap<>();
         fontMap.put("very_small", new Font("맑은 고딕", Font.PLAIN, 8));
@@ -64,7 +37,7 @@ public class Common {
 
     public JSONObject loadJsonObject(String fileStr){
         try{
-            var parser = new JSONParser();
+            JSONParser parser = new JSONParser();
             return (JSONObject) parser.parse(new BufferedReader(new FileReader(fileStr)));
         } catch (IOException | ParseException | NullPointerException e){
             e.printStackTrace();
@@ -110,9 +83,9 @@ public class Common {
 
     public void deleteEquipmentCacheData(String value, boolean isReset){
         try{
-            var parser = new JSONParser();
-            var reader = new BufferedReader(new FileReader("cache/selected.json"));
-            var json = (JSONObject) parser.parse(reader);
+            JSONParser parser = new JSONParser();
+            BufferedReader reader = new BufferedReader(new FileReader("cache/selected.json"));
+            JSONObject json = (JSONObject) parser.parse(reader);
             JSONArray equipmentArray;
             if(isReset){
                 equipmentArray = new JSONArray();
@@ -126,7 +99,7 @@ public class Common {
 
                 }
             }
-            var writer = new BufferedWriter(new FileWriter("cache/selected.json"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter("cache/selected.json"));
             writer.write(json.toJSONString());
             writer.flush();
             writer.close();
@@ -137,9 +110,9 @@ public class Common {
 
     public void saveCacheData(String file, String key, Object value){
         try{
-            var parser = new JSONParser();
-            var reader = new BufferedReader(new FileReader("cache/"+file+".json"));
-            var json = (JSONObject) parser.parse(reader);
+            JSONParser parser = new JSONParser();
+            BufferedReader reader = new BufferedReader(new FileReader("cache/"+file+".json"));
+            JSONObject json = (JSONObject) parser.parse(reader);
             if(key.equals("equipments")){
                 JSONArray equipmentArray;
                 try{
@@ -155,7 +128,7 @@ public class Common {
             }else{
                 json.put(key, value);
             }
-            var writer = new BufferedWriter(new FileWriter("cache/"+file+".json"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter("cache/"+file+".json"));
             writer.write(json.toJSONString());
             writer.flush();
             writer.close();
