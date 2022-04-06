@@ -31,7 +31,7 @@ public class WindowCustom extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         customPanel = new JPanel();
         customPanel.setLayout(null);
-        customPanel.setBackground(new Color(34, 32, 37));
+        customPanel.setBackground(new Color(45, 46, 52));
         customPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(customPanel);
 
@@ -45,6 +45,20 @@ public class WindowCustom extends JFrame {
     }
 
     private void makeCustomWidget(){
+        JLabel labelDealer = new JLabel("<딜러>");
+        labelDealer.setFont(mapFont.get("huge"));
+        labelDealer.setForeground(Color.WHITE);
+        labelDealer.setBounds(65, 5, 250, 60);
+        labelDealer.setHorizontalAlignment(JLabel.CENTER);
+        customPanel.add(labelDealer);
+
+        JLabel labelBuffer = new JLabel("<버퍼>");
+        labelBuffer.setFont(mapFont.get("huge"));
+        labelBuffer.setForeground(Color.WHITE);
+        labelBuffer.setBounds(515, 5, 250, 60);
+        labelBuffer.setHorizontalAlignment(JLabel.CENTER);
+        customPanel.add(labelBuffer);
+
         JSONObject cacheJson = common.loadJsonObject("cache/selected.json");
         JSONObject widgetJson = common.loadJsonObject("resources/ui_layout/custom.json");
 

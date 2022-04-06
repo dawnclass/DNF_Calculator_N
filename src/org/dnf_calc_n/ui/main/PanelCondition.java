@@ -160,7 +160,6 @@ public class PanelCondition extends JPanel {
                 this.add(nowCombo);
                 widgetGauge.put(key, nowCombo);
             }
-            index++;
         }
         this.updateUI();
     }

@@ -28,7 +28,7 @@ class DamageCondition {
         return arrayReturn
     }
 
-    fun parseLevelArrayOption(str: String, upValue: Double, isCubeForced: Boolean) : Array<Double>{
+    fun parseLevelArrayOption(str: String, upValue: Double, arrayCubeUse: Array<Int>) : Array<Double>{
         val arrayReturn = Array<Double>(19){0.0}
         if(str.contains(" ")){
             val strArray = str.split(" ")
@@ -52,18 +52,13 @@ class DamageCondition {
                 }
             }else if(strArray[0].contains("무큐")){
                 if(strArray[0]=="비무큐"){
-                    if(!isCubeForced){
-                        for(i in 0..6) arrayReturn[i] = upValue
-                        arrayReturn[10] = upValue
+                    for(i in arrayCubeUse.indices){
+                        if(arrayCubeUse[i]==0) arrayReturn[i] = upValue
                     }
                 }else if(strArray[0]=="무큐"){
-                    if(isCubeForced){
-                        for(i in arrayReturn.indices) arrayReturn[i] = upValue
-                    }else{
-                        for(i in 7..18) arrayReturn[i] = upValue
-                        arrayReturn[10] = 0.0
+                    for(i in arrayCubeUse.indices){
+                        if(arrayCubeUse[i]!=0) arrayReturn[i] = upValue
                     }
-
                 }
             }else{
                 val i = levelIndex.indexOf(strArray[0])
@@ -74,7 +69,38 @@ class DamageCondition {
                 arrayReturn[i] = upValue
             }
         }
+        var isUlt = true
+        if(str.contains("스증") && str.contains("(각X)")){
+            isUlt = false
+        } else if(str.contains("쿨감") || str.contains("쿨회복")){
+            isUlt = false
+            if(str.contains("(각)")){
+                isUlt = true
+            }
+        }
+        if(!isUlt){
+            arrayReturn[11] = 0.0
+            arrayReturn[16] = 0.0
+            arrayReturn[18] = 0.0
+        }
         return arrayReturn
+    }
+
+    fun calculateCubeUse(arrayEquipment: Array<String>) : Array<Int>{
+        val arrayCubeUse = arrayOf(
+            0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 5, 2, 3, 3, 5, 10, 7, 15
+        )
+        if(arrayEquipment.contains("14062")){
+            for(i in arrayCubeUse.indices) if(arrayCubeUse[i]==0) arrayCubeUse[i]+=2
+        }
+        if(arrayEquipment.contains("33062")){
+            for(i in arrayCubeUse.indices) if(arrayCubeUse[i]!=0) arrayCubeUse[i]+=2
+        }
+
+        if(arrayEquipment.contains("21062")){
+            for(i in arrayCubeUse.indices) arrayCubeUse[i]*=8
+        }
+        return arrayCubeUse
     }
 
 }

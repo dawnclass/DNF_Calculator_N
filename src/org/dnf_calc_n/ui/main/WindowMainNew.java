@@ -13,7 +13,10 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 
@@ -73,7 +76,7 @@ public class WindowMainNew extends JFrame {
         mapIconExtra = loadImage.loadAllImageExtra();
         mapFont = common.loadFont();
         setResizable(false);
-        setTitle("에픽조합계산기N 0.1.1");
+        setTitle("에픽조합계산기N 1.0.0");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 1024, 720);
         mainPanel = new JPanel();
@@ -91,8 +94,30 @@ public class WindowMainNew extends JFrame {
         panelSelect = new PanelSelect(
                 mainPanel, panelResult, panelCondition,
                 equipmentData, mapIconItem, panelInfo,
-                buff, damage
+                buff, damage, mapWidgetCombo
         );
+
+        JButton twip = new JButton();
+        twip.setIcon(mapIconExtra.get("donate"));
+        twip.setBounds(930, 555, 67, 56);
+        twip.setBackground(new Color(34, 32, 37));
+        twip.setBorder(new EmptyBorder(0,0,0,0));
+        twip.addActionListener(e -> {
+            try {
+                Desktop.getDesktop().browse(new URI("https://twip.kr/dawnclass16"));
+            }
+            catch (IOException | URISyntaxException d) {
+                d.printStackTrace();
+            }
+        });
+        mainPanel.add(twip);
+
+        JLabel maker = new JLabel("<html><body style='text-align:center;'>Made By<br>Dawnclass<br>(새벽반)</body></html>");
+        maker.setForeground(Color.WHITE);
+        maker.setBounds(931, 620, 67, 50);
+        maker.setHorizontalAlignment(JLabel.CENTER);
+        maker.setFont(mapFont.get("small"));
+        mainPanel.add(maker);
 
     }
 

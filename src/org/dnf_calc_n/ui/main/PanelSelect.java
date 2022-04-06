@@ -46,6 +46,7 @@ public class PanelSelect extends JPanel {
     Color sectionColor = new Color(34, 32, 37);
     JLabel labelNowName, labelNowExplain;
     WindowSave windowSave;
+    HashMap<String, JComboBox<String>> mapWidgetCombo;
 
     String selectedMyth = "";
     JSONArray equipmentListJson;
@@ -55,8 +56,10 @@ public class PanelSelect extends JPanel {
             JPanel root, PanelResult panelResult, PanelCondition panelCondition,
             JSONObject equipmentData, HashMap<String, ImageIcon> mapIconItem,
             PanelInfo panelInfo,
-            Buff buff, Damage damage
+            Buff buff, Damage damage,
+            HashMap<String, JComboBox<String>> mapWidgetCombo
     ){
+        this.mapWidgetCombo = mapWidgetCombo;
         this.panelSelect = this;
         this.panelResult = panelResult;
         this.panelCondition = panelCondition;
@@ -88,7 +91,7 @@ public class PanelSelect extends JPanel {
                     JLabel alertLabel = new JLabel("신화 중복 선택");
                     alertLabel.setFont(mapFont.get("bold"));
                     JOptionPane.showMessageDialog(
-                            null, alertLabel, "오류",
+                            this, alertLabel, "오류",
                             JOptionPane.ERROR_MESSAGE
                     );
                     return;
@@ -114,12 +117,13 @@ public class PanelSelect extends JPanel {
             JLabel alertLabel = new JLabel("정말로 초기화하겠습니까?");
             alertLabel.setFont(mapFont.get("bold"));
             int ans = JOptionPane.showOptionDialog(
-                    this, alertLabel, "확인 알림",
+                    panelSelect, alertLabel, "확인 알림",
                     JOptionPane.YES_NO_CANCEL_OPTION,
                     JOptionPane.INFORMATION_MESSAGE, null, answers, answers[0]
             );
             if(ans == 0){
                 panelInfo.resetInfoPanel();
+                calculationPackage();
             }
 
         });
@@ -132,20 +136,17 @@ public class PanelSelect extends JPanel {
         saveButton.setForeground(Color.BLACK);
         saveButton.setBounds(357, 10, 80, 50);
         saveButton.setFont(mapFont.get("bold"));
-        saveButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try{
-                    windowSave.dispose();
-                }catch (Exception ignored){}
-                windowSave = new WindowSave(panelSelect);
-                windowSave.startSave();
-            }
+        saveButton.addActionListener(e -> {
+            try{
+                windowSave.dispose();
+            }catch (Exception ignored){}
+            windowSave = new WindowSave(panelSelect, panelInfo, mapWidgetCombo);
+            windowSave.startSave();
         });
         this.add(saveButton);
     }
 
-    private void calculationPackage(){
+    public void calculationPackage(){
         panelResult.resetBuffValue();
         System.out.println("딜러 계산 시작");
         damage.startDamageCalculate(panelInfo.getMapEquipments());
@@ -340,6 +341,11 @@ public class PanelSelect extends JPanel {
                             Double oo = (Double) o;
                             nowExplain.append(oo.intValue()).append(" ");
                         }
+                        nowExplain.append("<br>드랍 : ");
+                        JSONArray dropArray = (JSONArray)nowItem.get("드랍");
+                        for (Object o : dropArray) {
+                            nowExplain.append(o).append(" ");
+                        }
 
                         nowExplain.append("</html>");
                         labelNowExplain.setText(nowExplain.toString());
@@ -353,7 +359,7 @@ public class PanelSelect extends JPanel {
                         JLabel alertLabel = new JLabel("신화 중복 선택");
                         alertLabel.setFont(mapFont.get("bold"));
                         JOptionPane.showMessageDialog(
-                                null, alertLabel, "오류",
+                                panelSelect, alertLabel, "오류",
                                 JOptionPane.ERROR_MESSAGE
                         );
                         return;

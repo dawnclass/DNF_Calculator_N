@@ -50,7 +50,7 @@ public class PanelCustom extends JPanel {
         customBtn.setText("커스텀");
         customBtn.setFont(mapFont.get("bold"));
         customBtn.setBackground(new Color(200, 200, 200));
-        customBtn.setBounds(5, 100, 70, 40);
+        customBtn.setBounds(120, 100, 60, 40);
         customBtn.setBorder(new EmptyBorder(0, 0, 0, 0));
         customBtn.addActionListener(new ActionListener() {
             @Override
@@ -99,6 +99,7 @@ public class PanelCustom extends JPanel {
             }
         });
         customPanel.add(optionLvCombo);
+        mapWidgetCombo.put("optionLv", optionLvCombo);
 
 
         JLabel nowLabel = new JLabel();
@@ -164,6 +165,34 @@ public class PanelCustom extends JPanel {
         mapWidgetCombo.put("job", jobCombo);
         mapWidgetCombo.put("jobType", jobTypeCombo);
 
+        JLabel nowLabel3 = new JLabel();
+        nowLabel3.setText("쿨감보정 : ");
+        nowLabel3.setFont(mapFont.get("bold"));
+        nowLabel3.setForeground(Color.WHITE);
+        nowLabel3.setBounds(10, 98, 100, 18);
+        customPanel.add(nowLabel3);
+        String[] coolStrings = {"원쿨감", "보정값"};
+        JComboBox<String> comboCool = new JComboBox<>(coolStrings);
+        comboCool.setFont(mapFont.get("normal"));
+        comboCool.setBorder(new EmptyBorder(0, 0, 0, 0));
+        comboCool.setBounds(10, 120, 100, 20);
+        comboCool.addItemListener(e -> {
+            if(e.getStateChange() == ItemEvent.SELECTED){
+                String cool = (String) comboCool.getSelectedItem();
+                // System.out.println(job);
+                common.saveCacheData("selected", "cool", cool);
+                calculationPackage();
+            }
+        });
+        String nowCool;
+        try{
+            nowCool = (String) json.get("cool");
+        }catch (Exception e){
+            nowCool = "원쿨감";
+        }
+        comboCool.setSelectedItem(nowCool);
+        customPanel.add(comboCool);
+        mapWidgetCombo.put("cool", comboCool);
     }
 
     public void calculationPackage(){

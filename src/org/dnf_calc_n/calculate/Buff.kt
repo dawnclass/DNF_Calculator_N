@@ -64,7 +64,7 @@ class Buff(private var equipmentData: JSONObject) {
                 mapSkillData["크크"] = buffSkillData["SaintCrossAtk"] as JSONArray
                 mapSkillData["1각패"] = buffSkillData["SaintPas1BuffStat"] as JSONArray
                 mapSkillData["1각패오라"] = buffSkillData["SaintPas1AuraStat"] as JSONArray
-                mapSkillData["2각"] = buffSkillData["SaintPas2"] as JSONArray
+                mapSkillData["2각"] = buffSkillData["SaintUlt2"] as JSONArray
             }
             "프리스트(여) 크루세이더" -> {
                 blessAria = 1.15

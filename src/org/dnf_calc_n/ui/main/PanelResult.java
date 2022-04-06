@@ -1,11 +1,13 @@
 package org.dnf_calc_n.ui.main;
 
 import org.dnf_calc_n.Common;
+import org.json.simple.JSONObject;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,9 +36,14 @@ public class PanelResult extends JPanel {
         // setDamagePanel();
     }
 
+    Double[] damageArray, coolDownArray, coolDamageArray;
     public void setDamageArray(Double[] damageArray, Double[] coolDownArray, Double[] coolDamageArray){
+        toggleCoolMode();
+        this.damageArray = damageArray;
+        this.coolDownArray = coolDownArray;
+        this.coolDamageArray = coolDamageArray;
         damageGraphPanel.setDamageArray(damageArray, coolDownArray, coolDamageArray);
-        setDamageValue(damageArray, coolDamageArray);
+        setDamageValue(damageArray, coolDamageArray, coolDownArray);
     }
 
     int[] groupTotal = {};
@@ -46,22 +53,42 @@ public class PanelResult extends JPanel {
     int[] group3 = {9, 13, 14, 15, 17};
     int[] group4 = {11, 16, 18};
     int[][] group = {groupTotal, group0, group1, group2, group3, group4};
-    private void setDamageValue(Double[] damageArray, Double[] coolDamageArray){
-        damageValueLabel.get("종합").setText("준비중");
-        damageValueLabel.get("종합2").setText("준비중");
-        damageValueLabel.get("평타기숙").setText((int)(damageArray[0]*100)+"%");
+    private void setDamageValue(Double[] damageArray, Double[] coolDamageArray, Double[] coolDownArray){
+        DecimalFormat formatter = new DecimalFormat("###,###");
+        damageValueLabel.get("종합").setText("추가예정");
+        damageValueLabel.get("종합2").setText("추가예정");
+        damageValueLabel.get("평타기숙").setText(formatter.format(damageArray[0]*100));
         damageValueLabel.get("평타기숙2").setText("-");
         for(int i=2;i<6;i++){
             double value = 0;
             double value2 = 0;
+            double value3 = 0;
             for(int j : group[i]){
                 value+=damageArray[j];
                 value2+=coolDamageArray[j];
+                value3+=coolDownArray[j];
             }
             value = value / group[i].length;
             value2 = value2 / group[i].length;
-            damageValueLabel.get(tagDamageValue[i]).setText((int)(value*100)+"%");
-            damageValueLabel.get(tagDamageValue[i]+"2").setText((int)(value2*100)+"%");
+            value3 = value3 / group[i].length;
+            damageValueLabel.get(tagDamageValue[i]).setText(formatter.format(value*100));
+            if(isCoolOriginal){
+                damageValueLabel.get(tagDamageValue[i]+"2").setText(Math.round(value3*1000)/10.0+"%");
+            }else{
+                damageValueLabel.get(tagDamageValue[i]+"2").setText(formatter.format(value2*100));
+            }
+        }
+    }
+
+    static boolean isCoolOriginal = true;
+    public void toggleCoolMode(){
+        JSONObject nowJson = common.loadJsonObject("cache/selected.json");
+        if("원쿨감".equals(nowJson.get("cool"))){
+            isCoolOriginal = true;
+            nowLabelWithDamage.setText("쿨감%");
+        }else{
+            isCoolOriginal = false;
+            nowLabelWithDamage.setText("쿨감보정");
         }
     }
 
@@ -88,23 +115,26 @@ public class PanelResult extends JPanel {
             for(double v : damageArray){
                 if(v > maxValue) maxValue = v;
             }
-            for(double v : coolDamageArray){
-                if(v > maxValue) maxValue = v;
+            if(!isCoolOriginal){
+                for(double v : coolDamageArray){
+                    if(v > maxValue) maxValue = v;
+                }
             }
-            System.out.println("maxValue = "+maxValue);
+            // System.out.println("maxValue = "+maxValue);
             this.repaint();
         }
 
         int[] index = {1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 48, 50, 60, 70, 75, 80, 85, 95, 100};
         @Override
         public void paintComponent(Graphics g){
+            DecimalFormat formatter = new DecimalFormat("###,###");
             g.setColor(Color.WHITE);
             g.fillRect(0, 0, 250, 490);
             g.setColor(Color.GRAY);
             g.drawLine(30, 5, 30, 485);
             g.setColor(Color.LIGHT_GRAY);
             g.drawLine(120, 20, 120, 485);
-            g.setColor(Color.GRAY);
+            g.setColor(Color.LIGHT_GRAY);
             g.drawLine(210, 5, 210, 485);
             for(int i=0;i<index.length;i++){
                 g.setColor(Color.BLACK);
@@ -115,22 +145,26 @@ public class PanelResult extends JPanel {
                     int x = (int) ((damageArray[i] / maxValue) * 200);
                     g.fillRect(30, 22+25*i, x, 5);
                     g.setFont(mapFont.get("more_small"));
-                    g.drawString((int)(damageArray[i]*100)+"%", x, 20+25*i);
-                    int x2 = (int) ((coolDamageArray[i] / maxValue) * 200)-x;
-                    if(x2 >= 0){
-                        g.setColor(Color.BLUE);
+                    g.drawString(formatter.format(damageArray[i]*100), x, 20+25*i);
+                    if(!isCoolOriginal){
+                        int x2 = (int) ((coolDamageArray[i] / maxValue) * 200)-x;
+                        if(x2 >= 0){
+                            g.setColor(Color.BLUE);
+                        }else{
+                            g.setColor(new Color(144, 0, 255));
+                        }
+                        g.fillRect(30+x, 22+25*i, x2, 5);
+                        if(!damageArray[i].equals(coolDamageArray[i])){
+                            g.drawString(formatter.format(coolDamageArray[i]*100), x+x2, 35+25*i);
+                        }
                     }else{
-                        g.setColor(new Color(144, 0, 255));
-                    }
-                    g.fillRect(30+x, 22+25*i, x2, 5);
-                    if(!damageArray[i].equals(coolDamageArray[i])){
-                        g.drawString((int)(coolDamageArray[i]*100)+"%", x+x2, 35+25*i);
+                        int x3 = (int) (coolDownArray[i] * 90);
+                        if(x3 < -90) x3= -90;
+                        g.setColor(Color.BLUE);
+                        g.fillRoundRect(117+x3, 21+25*i, 6, 6, 6, 6);
+                        g.drawString(Math.round(coolDownArray[i]*1000)/10.0+"%", 90+x3, 36+25*i);
                     }
 
-                    int x3 = (int) (coolDownArray[i] * 90);
-                    g.setColor(new Color(0, 0, 0));
-                    g.fillRoundRect(117+x3, 21+25*i, 6, 6, 6, 6);
-                    //g.drawString((int)(-coolDownArray[i]*1000)/10.0+"%", 90+x3, 27+25*i);
                 }catch (Exception ignored){}
             }
             g.setColor(new Color(0, 0, 0));
@@ -139,6 +173,7 @@ public class PanelResult extends JPanel {
         }
     }
 
+    JLabel nowLabelWithDamage;
     HashMap<String, JLabel> damageValueLabel = new HashMap<>();
     String[] tagDamageValue = {"종합", "평타기숙", "기본스킬", "하급스킬", "상급스킬", "각성스킬"};
     private void makeDamagePanel(){
@@ -162,7 +197,13 @@ public class PanelResult extends JPanel {
         nowLabelOnlyDamage.setBounds(50, 30, 67, 25);
         nowLabelOnlyDamage.setHorizontalAlignment(JLabel.CENTER);
         damagePanel.add(nowLabelOnlyDamage);
-        JLabel nowLabelWithDamage = new JLabel("쿨감보정%");
+        String coolText;
+        if(isCoolOriginal){
+            coolText = "쿨감%";
+        }else{
+            coolText = "쿨감보정%";
+        }
+        nowLabelWithDamage = new JLabel(coolText);
         nowLabelWithDamage.setFont(mapFont.get("small_bold"));
         nowLabelWithDamage.setBackground(new Color(34, 32, 37));
         nowLabelWithDamage.setForeground(new Color(132, 155, 255));
@@ -189,7 +230,7 @@ public class PanelResult extends JPanel {
             damagePanel.add(nowLabel);
             JLabel nowValueLabel = new JLabel("");
             nowValueLabel.setForeground(new Color(255, 132, 132));
-            nowValueLabel.setBounds(50, 55+25*i+(30-height), 67, height);
+            nowValueLabel.setBounds(51, 55+25*i+(30-height), 67, height);
             nowValueLabel.setHorizontalAlignment(JLabel.CENTER);
             damagePanel.add(nowValueLabel);
             damageValueLabel.put(tagDamageValue[i], nowValueLabel);

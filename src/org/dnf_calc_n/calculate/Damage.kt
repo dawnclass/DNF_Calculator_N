@@ -48,7 +48,7 @@ class Damage(private var equipmentData: JSONObject) {
         jsonConditionToggle.clear()
         jsonConditionArray.clear()
         jsonConditionGauge.clear()
-        isCubeForced = false
+        arrayCubeUse = arrayOf(0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 5, 2, 3, 3, 5, 10, 7, 15)
         isHPAlwaysLow = false
         isMythExist = false
     }
@@ -276,11 +276,10 @@ class Damage(private var equipmentData: JSONObject) {
     )
 
     private fun loadEquipmentData(){
+        if(arrayEquipment.contains("21212")) isHPAlwaysLow = true
         for(code in arrayEquipment){
             val nowJson : JSONObject = (equipmentData[code] ?: continue) as JSONObject
 
-            if(code == "14062") isCubeForced = true
-            if(code == "21212") isHPAlwaysLow = true
             if(code.length != 6 && code.substring(code.length-1) == "1") isMythExist = true
 
             val upDamage : JSONArray = nowJson["옵션피증"] as JSONArray
@@ -320,6 +319,7 @@ class Damage(private var equipmentData: JSONObject) {
                 simpleSumOptions[key] = 0.0
             }
         }
+        arrayCubeUse = damageCondition.calculateCubeUse(arrayEquipment)
         // println(simpleSumOptions.toString())
     }
 
@@ -336,7 +336,6 @@ class Damage(private var equipmentData: JSONObject) {
     private val jsonConditionToggle = JSONArray()
     private val jsonConditionArray = JSONArray()
     private val jsonConditionGauge = JSONArray()
-    private var isCubeForced = false
     private var isHPAlwaysLow = false
     private var isMythExist = false
 
@@ -360,7 +359,10 @@ class Damage(private var equipmentData: JSONObject) {
             parsedUpValue = JSONArray()
             applyType = strArray[strArray.size-1]
             if(applyType=="방무") applyType = "스증"
-            damageCondition.parseLevelArrayOption(upType, upValue, isCubeForced).forEach { v -> (parsedUpValue as JSONArray).add(v)}
+            damageCondition.parseLevelArrayOption(upType, upValue, arrayCubeUse).forEach { v -> (parsedUpValue as JSONArray).add(v)}
+            if(applyType.contains("(각)")) applyType = applyType.replace("(각)", "")
+            if(applyType.contains("(각X)")) applyType = applyType.replace("(각X)", "")
+            // println("$code ,applyType = $applyType")
         }else if(upType.contains("속성강화")){
             parsedUpValue = JSONArray()
             applyType = "속성강화"
@@ -389,14 +391,19 @@ class Damage(private var equipmentData: JSONObject) {
                 totalDamage += (parsedUpValue ?: 0.0) as Double
             }
             try{
-                if(applyType=="레벨"){
-                    listArrayLeveling.add(parsedUpValue as JSONArray)
-                }else if(applyType=="쿨회복"){
-                    listArrayCoolRecover.add(parsedUpValue as JSONArray)
-                }else if(applyType=="쿨감"){
-                    listArrayCoolDown.add(parsedUpValue as JSONArray)
-                }else if(applyType=="스증"){
-                    listArraySkillDamage.add(parsedUpValue as JSONArray)
+                when (applyType) {
+                    "레벨" -> {
+                        listArrayLeveling.add(parsedUpValue as JSONArray)
+                    }
+                    "쿨회복" -> {
+                        listArrayCoolRecover.add(parsedUpValue as JSONArray)
+                    }
+                    "쿨감" -> {
+                        listArrayCoolDown.add(parsedUpValue as JSONArray)
+                    }
+                    "스증" -> {
+                        listArraySkillDamage.add(parsedUpValue as JSONArray)
+                    }
                 }
             }catch (ignored: Exception){}
         }else{
@@ -421,8 +428,9 @@ class Damage(private var equipmentData: JSONObject) {
                 val applyValueArray = JSONArray()  // 저 중 고
                 val reqValueArray = JSONArray()  // 저 중 고
                 if(reqType.contains("HP n%") || reqType.contains("MP n%")){
+                    // println("isHPAlwaysLow = $isHPAlwaysLow")
                     reqValueArray.add("1")
-                    if(!isHPAlwaysLow){
+                    if(!(reqType.contains("HP n%") && isHPAlwaysLow)){
                         reqValueArray.add("61")
                         reqValueArray.add("100")
                     }
@@ -598,7 +606,7 @@ class Damage(private var equipmentData: JSONObject) {
     var arrayTotalLevelDamageWithCool = Array<Double>(19){0.0}
     var arrayTotalCoolDown = Array<Double>(19){0.0}
 
-
+    private var arrayCubeUse = arrayOf(0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 5, 2, 3, 3, 5, 10, 7, 15)
     private var totalDamage = 0.0
 
     private var optionLevel = 2.6
@@ -668,17 +676,32 @@ class Damage(private var equipmentData: JSONObject) {
         for(now in listArraySkillDamage + listArraySkillDamageCondition){
             for(i in now.indices) arraySkillDamage[i] *= (1+(now[i] as Double))
         }
-        //println("arrayLeveling: "+arrayLeveling.contentToString())
+        // println("arraySkillDamage: "+arraySkillDamage.contentToString())
+        // println("arrayCubeUse: "+arrayCubeUse.contentToString())
+        if(arrayEquipment.contains("14062")){
+            for(i in arrayCubeUse.indices){
+                if(arrayCubeUse[i] >= 30){
+                    arraySkillDamage[i] *= (1.2/1.02)
+                }else if(arrayCubeUse[i] >= 15){
+                    arraySkillDamage[i] *= (1.1/1.02)
+                }
+            }
+        }
+        // println("arrayLeveling: "+arrayLeveling.contentToString())
         // println("arrayCoolDown: "+arrayCoolDown.contentToString())
         // println("arrayCoolRecover: "+arrayCoolRecover.contentToString())
-        //println("arraySkillDamage: "+arraySkillDamage.contentToString())
+        println("arraySkillDamage: "+arraySkillDamage.contentToString())
         //println(jsonConditionToggle.toJSONString())
 
         var passiveDamage = 1.0
+        val summoner60Passive = if(job == "마법사(여) 소환사" && arrayEquipment.contains("31182")){
+            10.0}else{0.0} // 용골뿔피리 헤일롬
         for(i in arrayLeveling.indices){
-            passiveDamage *= ((arrayLeveling[i]+if(i==14){pet2ndPassive}else{0.0}) * (jobPassiveArray[i] as Double)) + 1.0
+            var nowUpLv = arrayLeveling[i]+if(i==14){pet2ndPassive}else{0.0}+if(i==12){summoner60Passive}else{0.0}
+            if(i!=10 && i!=14 && nowUpLv > 10) nowUpLv = 10.0
+            passiveDamage *= (nowUpLv * (jobPassiveArray[i] as Double)) + 1.0
         }
-        // println("passiveDamage = $passiveDamage")
+        println("passiveDamage = $passiveDamage")
 
         var totalSumDamage = (totalDamage + totalDamageCondition) * optionLevel
 
@@ -702,6 +725,7 @@ class Damage(private var equipmentData: JSONObject) {
                 minElement = nowElement
             }
         }
+        maxElement += arrayElement[4]
 
         val stat = (((simpleSumOptions["스탯"] ?: 0.0)+customStat[0] + additionalStat) * 4.08 + applyStat) / applyStat
         val atk = (((simpleSumOptions["공격력"] ?: 0.0)+customStat[1]) + applyAtk) / applyAtk
@@ -717,21 +741,26 @@ class Damage(private var equipmentData: JSONObject) {
         val mythOptionLevelDamage = if(isMythExist){1.0}else{optionMythLevel} // 노신화 보정 스증
         println("mythOptionLevelDamage = $mythOptionLevelDamage")
 
-        val sumDamage = ((damage100 + damage105) * skillDamage * stat * atk *
+        var sumDamage = ((damage100 + damage105) * skillDamage * stat * atk *
                 (1.05 + 0.0045 * maxElement) * passiveDamage * mpOverSkillDamage * mythOptionLevelDamage
                 )
 
         val statusDamageMap = HashMap<String, Double>()
+        var totalDamageRatio = 0.0
         var transRatio = 0.0
         statusTrans.forEach { (key, value) ->
             transRatio += value
-            statusDamageMap[key] = sumDamage * value * (
-                    1 + (statusDamage[key] ?: 0.0) + (statusDamageCondition[key] ?: 0.0)
-                    )
+            val nowRatio = value * (1 + (statusDamage[key] ?: 0.0) + (statusDamageCondition[key] ?: 0.0))
+            println("statusDamage[key] = ${statusDamage[key]}")
+            println("statusDamageCondition[key] = ${statusDamageCondition[key]}")
+            println("상변: $key 의 비율 = $nowRatio")
+            totalDamageRatio += nowRatio
+            statusDamageMap[key] = sumDamage * nowRatio
         }
-
+        totalDamageRatio += (1 - transRatio)
         statusDamageMap["본뎀"] = sumDamage * (1 - transRatio)
-
+        // println("상변 적용 전 sumDamage: $sumDamage")
+        sumDamage *= totalDamageRatio
 
         println("총 피증: $totalSumDamage")
         println("sumDamage: $sumDamage")
@@ -746,8 +775,6 @@ class Damage(private var equipmentData: JSONObject) {
                     (1 + levelMax[i] * levelEfficiency[levelInterval[i]])
                     ) * arraySkillDamage[i]
             if(levelInterval[i] == 5){
-                if(arrayCoolDown[i] > 0) arrayCoolDown[i] = 0.0
-                if(arrayCoolRecover[i] > 0) arrayCoolRecover[i] = 0.0
                 arrayTotalCoolDown[i] = 1 - (1 - arrayCoolDown[i]) / (1+arrayCoolRecover[i])
             }else if(levelInterval[i] == 3 || levelInterval[i] == 1){
                 arrayTotalCoolDown[i] = 0.0
