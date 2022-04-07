@@ -97,29 +97,28 @@ public class PanelCondition extends JPanel {
                     nowCheck.setSelected(false);
                 }
 
-                nowCheck.addItemListener(new ItemListener() {
-                    public void itemStateChanged(ItemEvent e) {
-                        if(nowCheck.isSelected()){
-                            mapSelectCondition.put(key, "true");
-                        }else{
-                            mapSelectCondition.put(key, "false");
-                        }
-                        damage.applyCondition(mapSelectCondition);
-                        buff.setLevelingArray(damage.getArrayLeveling());
-                        panelResult.resetBuffValue();
-                        if(buff.getIsBuff()){
-                            System.out.println("버퍼 계산 시작");
-                            HashMap<String, String> mapResultBuff = buff.getMapResult();
-                            panelResult.setBuffResult(mapResultBuff);
-                            double buffAdditionalStat = buff.getAdditionalDealerStat();
-                            damage.setAdditionalStat(buffAdditionalStat);
-                        }
-                        panelResult.setDamageArray(
-                                damage.getArrayTotalLevelDamage(),
-                                damage.getArrayTotalCoolDown(),
-                                damage.getArrayTotalLevelDamageWithCool()
-                        );
+                nowCheck.addItemListener(e -> {
+                    if(nowCheck.isSelected()){
+                        mapSelectCondition.put(key, "true");
+                    }else{
+                        mapSelectCondition.put(key, "false");
                     }
+                    damage.applyCondition(mapSelectCondition);
+                    buff.setLevelingArray(damage.getArrayLeveling());
+                    panelResult.resetBuffValue();
+                    if(buff.getIsBuff()){
+                        System.out.println("버퍼 계산 시작");
+                        buff.calculateBuff();
+                        HashMap<String, String> mapResultBuff = buff.getMapResult();
+                        panelResult.setBuffResult(mapResultBuff);
+                        double buffAdditionalStat = buff.getAdditionalDealerStat();
+                        damage.setAdditionalStat(buffAdditionalStat);
+                    }
+                    panelResult.setDamageArray(
+                            damage.getArrayTotalLevelDamage(),
+                            damage.getArrayTotalCoolDown(),
+                            damage.getArrayTotalLevelDamageWithCool()
+                    );
                 });
                 this.add(nowCheck);
                 widgetToggle.put(key, nowCheck);
@@ -135,8 +134,12 @@ public class PanelCondition extends JPanel {
                 JComboBox<String> nowCombo = new JComboBox<>(nowArray);
                 nowCombo.setFont(mapFont.get("normal"));
                 nowCombo.setBounds(145+nowGrid[0]*225, 3+nowGrid[1]*24, 65, 20);
-                mapSelectCondition.put(key, nowArray[nowArray.length-1]);
-                nowCombo.setSelectedItem(nowArray[nowArray.length-1]);
+                if(mapSelectCondition.get(key) == null){
+                    mapSelectCondition.putIfAbsent(key, nowArray[nowArray.length-1]);
+                    nowCombo.setSelectedItem(nowArray[nowArray.length-1]);
+                }else{
+                    nowCombo.setSelectedItem(mapSelectCondition.get(key));
+                }
                 nowCombo.addItemListener(e -> {
                     if(e.getStateChange() == ItemEvent.SELECTED){
                         mapSelectCondition.put(key, (String) nowCombo.getSelectedItem());
@@ -145,6 +148,7 @@ public class PanelCondition extends JPanel {
                         panelResult.resetBuffValue();
                         if(buff.getIsBuff()){
                             System.out.println("버퍼 계산 시작");
+                            buff.calculateBuff();
                             HashMap<String, String> mapResultBuff = buff.getMapResult();
                             panelResult.setBuffResult(mapResultBuff);
                             double buffAdditionalStat = buff.getAdditionalDealerStat();

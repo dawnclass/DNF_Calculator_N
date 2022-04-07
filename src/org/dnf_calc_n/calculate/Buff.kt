@@ -26,6 +26,7 @@ class Buff(private var equipmentData: JSONObject) {
     private var basicBuff = 0.0
 
     private fun resetData(){
+        isBuff = false
         mapSkillData.clear()
         mapResult = HashMap()
         basicBuff = 0.0
@@ -122,6 +123,7 @@ class Buff(private var equipmentData: JSONObject) {
         }
         loadCustomData()
         loadEquipmentData()
+        isBuff = true
         return true
     }
 
@@ -259,9 +261,9 @@ class Buff(private var equipmentData: JSONObject) {
 
     var additionalDealerStat = 0.0
 
-    private fun calculateBuff(){
+    fun calculateBuff(){
         // println("버퍼 계산 시작")
-        // println("levelingArray = ${levelingArray.contentToString()}")
+        println("levelingArray = ${levelingArray.contentToString()}")
         // mapValueSum.forEach { (t, v) -> println("$t = $v") }
         additionalDealerStat = 0.0
         var upStat = 0.0

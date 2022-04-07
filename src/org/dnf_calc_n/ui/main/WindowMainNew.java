@@ -5,6 +5,8 @@ import org.dnf_calc_n.calculate.Buff;
 import org.dnf_calc_n.calculate.Damage;
 import org.dnf_calc_n.data.LoadImage;
 import org.dnf_calc_n.data.LoadJob;
+import org.dnf_calc_n.ui.component.RoundButton;
+import org.dnf_calc_n.ui.sub.WindowUpdate;
 import org.json.simple.JSONObject;
 
 import javax.swing.*;
@@ -13,7 +15,7 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -34,6 +36,7 @@ public class WindowMainNew extends JFrame {
     PanelCustom panelCustom;
     PanelResult panelResult;
     PanelCondition panelCondition;
+    WindowUpdate windowUpdate;
 
     JSONObject jsonCache;
 
@@ -66,6 +69,7 @@ public class WindowMainNew extends JFrame {
     }
 
     public WindowMainNew() {
+        loadNowVersion();
         // 초기 데이터 로드
         LoadImage loadImage = new LoadImage();
         jsonCache = common.loadJsonObject("cache/selected.json");
@@ -76,9 +80,10 @@ public class WindowMainNew extends JFrame {
         mapIconExtra = loadImage.loadAllImageExtra();
         mapFont = common.loadFont();
         setResizable(false);
-        setTitle("에픽조합계산기N 1.0.0");
+        setTitle("에픽조합계산기N "+nowVersion);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 1024, 720);
+        setSize(1024, 720);
+        setLocationRelativeTo(null);
         mainPanel = new JPanel();
         mainPanel.setBackground(new Color(34, 32, 37));
         mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -99,7 +104,7 @@ public class WindowMainNew extends JFrame {
 
         JButton twip = new JButton();
         twip.setIcon(mapIconExtra.get("donate"));
-        twip.setBounds(930, 555, 67, 56);
+        twip.setBounds(931, 489, 67, 56);
         twip.setBackground(new Color(34, 32, 37));
         twip.setBorder(new EmptyBorder(0,0,0,0));
         twip.addActionListener(e -> {
@@ -112,6 +117,22 @@ public class WindowMainNew extends JFrame {
         });
         mainPanel.add(twip);
 
+        RoundButton update = new RoundButton();
+        update.setText("버전확인");
+        update.setBounds(930, 560, 67, 56);
+        update.setBackground(Color.LIGHT_GRAY);
+        update.setFont(mapFont.get("normal_bold"));
+        update.setHorizontalAlignment(JButton.CENTER);
+        update.setForeground(Color.BLACK);
+        update.addActionListener(e -> {
+            try{
+                windowUpdate.dispose();
+            }catch (Exception ignored){}
+            windowUpdate = new WindowUpdate(nowVersion);
+            windowUpdate.setVisible(true);
+        });
+        mainPanel.add(update);
+
         JLabel maker = new JLabel("<html><body style='text-align:center;'>Made By<br>Dawnclass<br>(새벽반)</body></html>");
         maker.setForeground(Color.WHITE);
         maker.setBounds(931, 620, 67, 50);
@@ -119,6 +140,22 @@ public class WindowMainNew extends JFrame {
         maker.setFont(mapFont.get("small"));
         mainPanel.add(maker);
 
+        windowUpdate = new WindowUpdate(nowVersion);
+        windowUpdate.setVisible(true);
+
+    }
+
+    String nowVersion = "1.0.0";
+    private void loadNowVersion(){
+        try {
+            FileInputStream is = new FileInputStream("update.txt");
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            nowVersion = br.readLine();
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println(nowVersion);
     }
 
 

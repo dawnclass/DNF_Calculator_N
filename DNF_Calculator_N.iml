@@ -10,5 +10,6 @@
     <orderEntry type="library" name="KotlinJavaRuntime (2)" level="project" />
     <orderEntry type="library" name="json-simple-1.1.11" level="project" />
     <orderEntry type="library" name="json-simple-1.1.1" level="project" />
+    <orderEntry type="library" name="jsoup-1.14.3" level="project" />
   </component>
 </module>

@@ -285,6 +285,7 @@ public class PanelSelect extends JPanel {
         scrollPane = new JScrollPane(panelSelectItem
                 , ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         //scrollPane.setPreferredSize(new Dimension(242, 322));
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setBounds(4, 74, 242, 300);
         scrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
         scrollPane.getViewport().setBackground(sectionColor);
@@ -352,7 +353,16 @@ public class PanelSelect extends JPanel {
                     }catch (NullPointerException ignored){}
                 }
                 @Override
+                public void mouseClicked(MouseEvent e){
+                    clickedTime = System.currentTimeMillis();
+                }
+                @Override
                 public void mouseReleased(MouseEvent e){
+                    long releaseTime = System.currentTimeMillis();
+                    if(releaseTime-clickedTime > 1000){
+                        System.out.println("긴 클릭 인식 테스트");
+                        return;
+                    }
                     // System.out.println("눌림 : "+code);
                     boolean isPassed = panelInfo.setEquipment(code);
                     if(!isPassed){
@@ -388,6 +398,7 @@ public class PanelSelect extends JPanel {
         }
         panelSelectItem.updateUI();
     }
+    static long clickedTime = 0;
 
     ArrayList<JButton> listPartBtn = new ArrayList<>();
     private final String[] TAGS = {"",

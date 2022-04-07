@@ -203,7 +203,6 @@ public class PanelCustom extends JPanel {
         damage.applyCondition(panelCondition.getMapSelectCondition());
         buff.setLevelingArray(damage.getArrayLeveling());
         boolean isBuff = buff.startBuffCalculate(panelInfo.getMapEquipments());
-        buff.setBuff(isBuff);
         if(isBuff){
             System.out.println("버퍼 계산 시작");
             HashMap<String, String> mapResultBuff = buff.getMapResult();
