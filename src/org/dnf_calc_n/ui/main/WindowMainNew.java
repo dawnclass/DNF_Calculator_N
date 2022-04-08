@@ -6,6 +6,8 @@ import org.dnf_calc_n.calculate.Damage;
 import org.dnf_calc_n.data.LoadImage;
 import org.dnf_calc_n.data.LoadJob;
 import org.dnf_calc_n.ui.component.RoundButton;
+import org.dnf_calc_n.ui.sub.WindowExplain;
+import org.dnf_calc_n.ui.sub.WindowSave;
 import org.dnf_calc_n.ui.sub.WindowUpdate;
 import org.json.simple.JSONObject;
 
@@ -37,6 +39,7 @@ public class WindowMainNew extends JFrame {
     PanelResult panelResult;
     PanelCondition panelCondition;
     WindowUpdate windowUpdate;
+    WindowExplain windowExplain;
 
     JSONObject jsonCache;
 
@@ -90,16 +93,18 @@ public class WindowMainNew extends JFrame {
         setContentPane(mainPanel);
         mainPanel.setLayout(null);
 
+        windowExplain = new WindowExplain(equipmentData, mapIconItem);
+
         // 영역 생성
         panelResult = new PanelResult(mainPanel);
         panelCondition = new PanelCondition(mainPanel, damage, buff, panelResult);
-        panelInfo = new PanelInfo(mainPanel, mapIconItem, mapIconExtra);
+        panelInfo = new PanelInfo(mainPanel, mapIconItem, mapIconExtra, equipmentData, windowExplain);
         panelCustom = new PanelCustom(mainPanel, panelResult, panelInfo, panelCondition,
                 mapWidgetCombo, buff, damage);
         panelSelect = new PanelSelect(
                 mainPanel, panelResult, panelCondition,
                 equipmentData, mapIconItem, panelInfo,
-                buff, damage, mapWidgetCombo
+                buff, damage, mapWidgetCombo, windowExplain
         );
 
         JButton twip = new JButton();
@@ -140,8 +145,11 @@ public class WindowMainNew extends JFrame {
         maker.setFont(mapFont.get("small"));
         mainPanel.add(maker);
 
-        windowUpdate = new WindowUpdate(nowVersion);
-        windowUpdate.setVisible(true);
+        JSONObject jsonSave = common.loadJsonObject("cache/saved.json");
+        if(!"1".equals(jsonSave.get("patchNoShow"))){
+            windowUpdate = new WindowUpdate(nowVersion);
+            windowUpdate.setVisible(true);
+        }
 
     }
 

@@ -781,6 +781,7 @@ class Damage(private var equipmentData: JSONObject) {
             }else{
                 arrayTotalCoolDown[i] = 1 - (1 - arrayCoolDown[i]) / (1+arrayCoolRecover[i])
             }
+            if(arrayTotalCoolDown[i] > 0.7) arrayTotalCoolDown[i] = 0.7
             val coolRealEff = (
                     (1.0 / (1 - arrayTotalCoolDown[i]) - 1) /
                     ((arrayTotalCoolDown[i] / 0.7)*(arrayTotalCoolDown[i] / 0.7)*(arrayTotalCoolDown[i] / 0.7) + 1)

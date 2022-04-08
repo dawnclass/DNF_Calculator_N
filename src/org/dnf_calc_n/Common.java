@@ -108,6 +108,17 @@ public class Common {
         }
     }
 
+    public void saveJson(String filePath, JSONObject json){
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+            writer.write(json.toJSONString());
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void saveCacheData(String file, String key, Object value){
         try{
             JSONParser parser = new JSONParser();

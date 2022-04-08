@@ -5,6 +5,7 @@ import org.dnf_calc_n.calculate.Buff;
 import org.dnf_calc_n.calculate.Damage;
 import org.dnf_calc_n.ui.component.RoundButton;
 import org.dnf_calc_n.ui.sub.WindowCustom;
+import org.dnf_calc_n.ui.sub.WindowExplain;
 import org.dnf_calc_n.ui.sub.WindowSave;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -47,6 +48,7 @@ public class PanelSelect extends JPanel {
     JLabel labelNowName, labelNowExplain;
     WindowSave windowSave;
     HashMap<String, JComboBox<String>> mapWidgetCombo;
+    WindowExplain windowExplain;
 
     String selectedMyth = "";
     JSONArray equipmentListJson;
@@ -57,7 +59,8 @@ public class PanelSelect extends JPanel {
             JSONObject equipmentData, HashMap<String, ImageIcon> mapIconItem,
             PanelInfo panelInfo,
             Buff buff, Damage damage,
-            HashMap<String, JComboBox<String>> mapWidgetCombo
+            HashMap<String, JComboBox<String>> mapWidgetCombo,
+            WindowExplain windowExplain
     ){
         this.mapWidgetCombo = mapWidgetCombo;
         this.panelSelect = this;
@@ -70,6 +73,8 @@ public class PanelSelect extends JPanel {
         this.mapInfoButtons = panelInfo.getMapInfoButtons();
         this.mapIconItem = mapIconItem;
         this.equipmentData = equipmentData;
+        this.windowExplain = windowExplain;
+
         this.setBackground(bgColor);
         this.setBounds(10, 170, 450, 500);
         this.setLayout(null);
@@ -293,6 +298,7 @@ public class PanelSelect extends JPanel {
 
         updateEquipmentButton();
     }
+
     private void updateEquipmentButton(){
         int len = listEquipment.size();
         panelSelectItem.removeAll();
@@ -353,14 +359,14 @@ public class PanelSelect extends JPanel {
                     }catch (NullPointerException ignored){}
                 }
                 @Override
-                public void mouseClicked(MouseEvent e){
-                    clickedTime = System.currentTimeMillis();
-                }
+                public void mousePressed(MouseEvent e) {clickedTime = e.getWhen();}
                 @Override
                 public void mouseReleased(MouseEvent e){
-                    long releaseTime = System.currentTimeMillis();
-                    if(releaseTime-clickedTime > 1000){
-                        System.out.println("긴 클릭 인식 테스트");
+                    long releaseTime = e.getWhen();
+                    System.out.println(releaseTime-clickedTime);
+                    if(releaseTime-clickedTime > 500){
+                        windowExplain.getEquipmentCode(code);
+                        windowExplain.setVisible(true);
                         return;
                     }
                     // System.out.println("눌림 : "+code);
@@ -438,18 +444,6 @@ public class PanelSelect extends JPanel {
             });
             this.add(btnNow);
             listPartBtn.add(btnNow);
-
-            final int index = i;
-            if(i!=0){
-                mapInfoButtons.get(tag).addActionListener(e -> {
-                    selectedTag = tag;
-                    for(JButton btn : listPartBtn){
-                        btn.setBorder(new BevelBorder(BevelBorder.RAISED));
-                    }
-                    listPartBtn.get(index).setBorder(new BevelBorder(BevelBorder.LOWERED));
-                    updateEquipmentList();
-                });
-            }
         }
     }
 

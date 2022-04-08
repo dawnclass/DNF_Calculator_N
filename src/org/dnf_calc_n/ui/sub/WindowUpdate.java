@@ -1,6 +1,7 @@
 package org.dnf_calc_n.ui.sub;
 
 import org.dnf_calc_n.Common;
+import org.json.simple.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -111,14 +112,23 @@ public class WindowUpdate extends JFrame {
             });
             panelUpdate.add(btn);
         }else{
-            JLabel label2 = new JLabel("최신 버전입니다.");
-            label2.setBackground(new Color(50, 46, 52));
-            label2.setForeground(Color.WHITE);
-            label2.setFont(mapFont.get("bold"));
-            label2.setBounds(0, 351, 385, 50);
-            label2.setBorder(new EmptyBorder(0,0,0,0));
-            label2.setVerticalAlignment(JLabel.CENTER);
-            panelUpdate.add(label2);
+            JButton btn = new JButton("최신버전입니다. (다신 보지 않기)");
+            btn.setFont(mapFont.get("bold"));
+            btn.setBounds(0, 351, 385, 50);
+            btn.setBackground(Color.LIGHT_GRAY);
+            btn.setForeground(Color.BLACK);
+            btn.setBorder(new EmptyBorder(0,0,0,0));
+            btn.setVerticalAlignment(JLabel.CENTER);
+            btn.addActionListener(e -> {
+                try {
+                    JSONObject saveJson = common.loadJsonObject("cache/saved.json");
+                    saveJson.put("patchNoShow", "1");
+                    common.saveJson("cache/saved.json", saveJson);
+                }catch (Exception d) {
+                    d.printStackTrace();
+                }
+            });
+            panelUpdate.add(btn);
         }
 
 
