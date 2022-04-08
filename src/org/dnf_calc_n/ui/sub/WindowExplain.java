@@ -123,15 +123,25 @@ public class WindowExplain extends JFrame {
             }catch (Exception ignored){}
         }
         for(String now : same2List){
-            JLabel nowIcon = new JLabel();
+            JButton nowIcon = new JButton();
             nowIcon.setIcon(mapIconItem.get(now));
+            nowIcon.setSize(28, 28);
+            nowIcon.setBorder(new EmptyBorder(0,0,0,0));
             nowIcon.setToolTipText((String)((JSONObject)equipmentData.get(now)).get("이름"));
+            nowIcon.addActionListener(e -> {
+                getEquipmentCode(now);
+            });
             panelSame2.add(nowIcon);
         }
         for(String now : same1List){
-            JLabel nowIcon = new JLabel();
+            JButton nowIcon = new JButton();
             nowIcon.setIcon(mapIconItem.get(now));
+            nowIcon.setSize(28, 28);
+            nowIcon.setBorder(new EmptyBorder(0,0,0,0));
             nowIcon.setToolTipText((String)((JSONObject)equipmentData.get(now)).get("이름"));
+            nowIcon.addActionListener(e -> {
+                getEquipmentCode(now);
+            });
             panelSame1.add(nowIcon);
         }
         panelSame2.updateUI();
@@ -176,7 +186,7 @@ public class WindowExplain extends JFrame {
                     explainText.append((String) explainTextArray.get(i)).append("\n \n");
                 }
                 elementArray = explainText.toString().split("\n");
-                System.out.println(Arrays.toString(elementArray));
+                //System.out.println(Arrays.toString(elementArray));
                 numElements = elementArray.length;
             }catch (Exception ignored){}
         }
