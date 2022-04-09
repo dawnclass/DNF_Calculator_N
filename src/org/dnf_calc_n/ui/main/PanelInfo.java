@@ -53,7 +53,7 @@ public class PanelInfo extends JPanel {
         updateInfo();
 
         RoundButton farmingBtn = new RoundButton("파밍 분석");
-        farmingBtn.setFont(common.loadFont().get("normal"));
+        farmingBtn.setFont(common.loadFont().get("normal_bold"));
         farmingBtn.setBounds(5, 120,75, 30);
         farmingBtn.addActionListener(e->{
             try{

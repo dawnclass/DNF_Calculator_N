@@ -93,7 +93,7 @@ public class WindowUpdate extends JFrame {
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
         );
         scroll.getVerticalScrollBar().setUnitIncrement(16);
-        scroll.setBounds(1, 0, 384, 350);
+        scroll.setBounds(1, 0, 394, 360);
         scroll.getViewport().setBackground(new Color(34, 32, 37));
         panelUpdate.add(scroll);
 
@@ -108,7 +108,7 @@ public class WindowUpdate extends JFrame {
         if(nowVer < latestVer){
             JButton btn = new JButton("최신버전이 아닙니다. (업데이트 링크)");
             btn.setFont(mapFont.get("bold"));
-            btn.setBounds(0, 351, 385, 50);
+            btn.setBounds(0, 361, 395, 50);
             btn.setBackground(Color.LIGHT_GRAY);
             btn.setForeground(Color.BLACK);
             btn.setBorder(new EmptyBorder(0,0,0,0));
@@ -126,7 +126,7 @@ public class WindowUpdate extends JFrame {
         }else{
             JButton btn = new JButton("최신버전입니다. (다신 보지 않기)");
             btn.setFont(mapFont.get("bold"));
-            btn.setBounds(0, 351, 385, 50);
+            btn.setBounds(0, 361, 395, 50);
             btn.setBackground(Color.LIGHT_GRAY);
             btn.setForeground(Color.BLACK);
             btn.setBorder(new EmptyBorder(0,0,0,0));
