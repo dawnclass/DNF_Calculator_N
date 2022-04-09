@@ -51,6 +51,24 @@ class ScoreFarming(private val equipmentData: JSONObject) {
         }
     }
 
+    fun calculateOne(equipmentCode: String): HashMap<String, Double>{
+        val returnMap = HashMap<String, Double>()
+        for(dun in farmingDungeon){
+            returnMap[dun] = 0.0
+        }
+        if(equipmentCode.length != 5) return returnMap
+        val part = equipmentCode.substring(0, 2)
+        val nowJson = equipmentData[equipmentCode] as JSONObject
+        val nowOpt = (nowJson["옵션종류"] ?: return returnMap) as JSONArray
+        for(opt in nowOpt){
+            for(dun in farmingDungeon){
+                returnMap[dun] = (returnMap[dun]!! +
+                        Collections.frequency(mapOptionTotal[part]!![dun]!!, opt))
+            }
+        }
+        return returnMap
+    }
+
     fun calculateScore(mapEquipments : HashMap<String, String>): HashMap<String, Double>{
         val returnMap = HashMap<String, Double>()
         for(dun in farmingDungeon){

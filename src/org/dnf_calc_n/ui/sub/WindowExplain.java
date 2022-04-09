@@ -27,7 +27,6 @@ public class WindowExplain extends JFrame {
         mapFont = common.loadFont();
         setResizable(false);
         setTitle("상세 설명");
-        setAlwaysOnTop(true);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 

@@ -380,7 +380,7 @@ class Damage(private var equipmentData: JSONObject) {
                 0.05, 0.05, 0.0, 0.05, 0.0
             )
             parsedUpValue = JSONArray()
-            nowArray.forEach { v -> parsedUpValue.add(v * upValue) }
+            nowArray.forEach { v -> parsedUpValue.add(v * (1.0 + upValue)) }
         }else{
             isCondition = false
         }

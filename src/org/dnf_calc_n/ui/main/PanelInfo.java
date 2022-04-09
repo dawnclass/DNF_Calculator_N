@@ -2,7 +2,9 @@ package org.dnf_calc_n.ui.main;
 
 import org.dnf_calc_n.Common;
 import org.dnf_calc_n.calculate.ScoreFarming;
+import org.dnf_calc_n.ui.component.RoundButton;
 import org.dnf_calc_n.ui.sub.WindowExplain;
+import org.dnf_calc_n.ui.sub.WindowFarming;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -29,6 +31,7 @@ public class PanelInfo extends JPanel {
     HashMap<String, ImageIcon> mapIconExtra;
     JSONObject equipmentData;
 
+    WindowFarming windowFarming;
     WindowExplain windowExplain;
     ScoreFarming scoreFarming;
     HashMap<String, HashMap<String, Double>> mapFarmingScore;
@@ -48,6 +51,21 @@ public class PanelInfo extends JPanel {
 
         scoreFarming = new ScoreFarming(equipmentData);
         updateInfo();
+
+        RoundButton farmingBtn = new RoundButton("파밍 분석");
+        farmingBtn.setFont(common.loadFont().get("normal"));
+        farmingBtn.setBounds(5, 120,75, 30);
+        farmingBtn.addActionListener(e->{
+            try{
+                windowFarming.dispose();
+            }catch (Exception ignored){}
+            windowFarming = new WindowFarming(
+                    mapEquipments, mapIconItem, mapIconExtra, equipmentData
+            );
+            windowFarming.setVisible(true);
+        });
+
+        this.add(farmingBtn);
     }
 
     String selectedMyth = "";
@@ -126,69 +144,15 @@ public class PanelInfo extends JPanel {
                 nowBtn.setIcon(mapIconExtra.get("info"+tag));
             }
         }
-        this.updateUI();;
-
-        farmingScore = scoreFarming.calculateScore(mapEquipments);
-        this.repaint();
-
+        this.updateUI();
 
 
     }
-    HashMap<String, Double> farmingScore;
-    ArrayList<Score> scoreArray = new ArrayList<>();
 
     @Override
     protected void paintComponent(Graphics g){
         super.paintComponent(g);
-        scoreArray = new ArrayList<>();
         g.drawImage(mapIconExtra.get("bg_info").getImage(), 0, 0, new Color(50, 46, 52), this);
-        try{
-            for(String dungeon : farmingScore.keySet()){
-                // System.out.println(dungeon + " " + farmingScore.get(dungeon).toString());
-                scoreArray.add(new Score(dungeon, farmingScore.get(dungeon)));
-            }
-            Collections.sort(scoreArray);
-            g.setColor(Color.WHITE);
-            g.setFont(common.loadFont().get("small"));
-            g.drawString("<파밍 드랍율>", 95, 15);
-            for(int i=0;i<scoreArray.size();i++){
-                if(i < 3) {
-                    g.setColor(Color.WHITE);
-                }else{
-                    g.setColor(Color.LIGHT_GRAY);
-                }
-                g.drawString(scoreArray.get(i).toString(true), 86, 35+15*i);
-                g.drawString(scoreArray.get(i).toString(false), 131, 35+15*i);
-            }
-        }catch (Exception ignored){}
-    }
-}
 
-class Score implements Comparable<Score>{
-
-    String dungeon;
-    double score;
-
-    public Score(String dungeon, double score){
-        this.dungeon = dungeon;
-        this.score = score;
-    }
-
-    @Override
-    public int compareTo(Score score) {
-        if(score.score < this.score){
-            return -1;
-        }else if(score.score > this.score){
-            return 1;
-        }
-        return 0;
-    }
-
-    public String toString(boolean tg){
-        if(tg){
-            return dungeon;
-        }else{
-            return ": "+(int)(score*10)/10.0 + "%";
-        }
     }
 }

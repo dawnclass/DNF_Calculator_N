@@ -146,9 +146,11 @@ public class WindowMainNew extends JFrame {
         mainPanel.add(maker);
 
         JSONObject jsonSave = common.loadJsonObject("cache/saved.json");
-        if(!"1".equals(jsonSave.get("patchNoShow"))){
+        if(!"1".equals(jsonSave.get("patchNoShow"))) {
             windowUpdate = new WindowUpdate(nowVersion);
             windowUpdate.setVisible(true);
+        }else{
+
         }
 
     }
