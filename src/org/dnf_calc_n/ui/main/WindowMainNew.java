@@ -92,6 +92,14 @@ public class WindowMainNew extends JFrame {
         mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(mainPanel);
         mainPanel.setLayout(null);
+        JSONObject jsonSave = common.loadJsonObject("cache/saved.json");
+        SwingUtilities.invokeLater(() -> {
+            windowUpdate = new WindowUpdate(nowVersion);
+            boolean isLatest = windowUpdate.isClientLatest();
+                    if(!"1".equals(jsonSave.get("patchNoShow")) || !isLatest) {
+                        windowUpdate.setVisible(true);
+                    }
+        });
 
         windowExplain = new WindowExplain(equipmentData, mapIconItem);
 
@@ -144,14 +152,6 @@ public class WindowMainNew extends JFrame {
         maker.setHorizontalAlignment(JLabel.CENTER);
         maker.setFont(mapFont.get("small"));
         mainPanel.add(maker);
-
-        JSONObject jsonSave = common.loadJsonObject("cache/saved.json");
-        if(!"1".equals(jsonSave.get("patchNoShow"))) {
-            windowUpdate = new WindowUpdate(nowVersion);
-            windowUpdate.setVisible(true);
-        }else{
-
-        }
 
     }
 

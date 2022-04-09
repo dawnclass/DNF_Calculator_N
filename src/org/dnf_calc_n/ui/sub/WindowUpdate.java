@@ -70,6 +70,18 @@ public class WindowUpdate extends JFrame {
         // System.out.println(updateText);
     }
 
+    public boolean isClientLatest(){
+        int nowVer, latestVer;
+        try{
+            nowVer = Integer.parseInt(nowVersion.split("\\.")[2]);
+            latestVer = Integer.parseInt(latestVersion.split("\\.")[2]);
+        }catch (Exception e){
+            nowVer = 0;
+            latestVer = 1;
+        }
+        return nowVer >= latestVer;
+    }
+
     private void makeButtonSection(){
         JLabel label = new JLabel();
         label.setText(updateText.toString());
