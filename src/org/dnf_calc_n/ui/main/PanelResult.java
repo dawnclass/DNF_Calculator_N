@@ -48,7 +48,7 @@ public class PanelResult extends JPanel {
 
     int[] groupTotal = {};
     int[] group0 = {0};
-    int[] group1 = {1, 2, 3, 4, 5, 6};
+    int[] group1 = {3, 4, 5, 6};
     int[] group2 = {7, 8, 12};
     int[] group3 = {9, 13, 14, 15, 17};
     int[] group4 = {11, 16, 18};

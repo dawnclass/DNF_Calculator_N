@@ -51,6 +51,7 @@ class Damage(private var equipmentData: JSONObject) {
         arrayCubeUse = arrayOf(0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 5, 2, 3, 3, 5, 10, 7, 15)
         isHPAlwaysLow = false
         isMythExist = false
+        is100Exist = false
     }
 
     private fun resetCondition(){
@@ -89,6 +90,13 @@ class Damage(private var equipmentData: JSONObject) {
             "60" -> 1.03*1.03*1.03*1.03*1.03*1.03
             "80" -> 1.03*1.03*1.03*1.03*1.03*1.03*1.03*1.03
             else -> 1.03*1.03*1.03*1.03
+        }
+        optionNot100Level = when(optionLevelString){
+            "20" -> 1.0
+            "40" -> 1.0
+            "60" -> 1.01*1.01*1.01*1.01*1.01*1.01*1.01*1.01*1.01*1.01*1.01
+            "80" -> 1.03*1.03*1.03*1.03*1.03*1.03*1.03*1.03*1.03*1.03*1.03
+            else -> 1.0
         }
         val jsonJob = common.loadJsonObject("resources/data/job_data.json")
         jobPassiveArray = ((jsonJob[job] ?: return false) as JSONObject)["passive"] as JSONArray
@@ -281,6 +289,7 @@ class Damage(private var equipmentData: JSONObject) {
             val nowJson : JSONObject = (equipmentData[code] ?: continue) as JSONObject
 
             if(code.length != 6 && code.substring(code.length-1) == "1") isMythExist = true
+            if(code.length == 8) is100Exist = true
 
             val upDamage : JSONArray = nowJson["옵션피증"] as JSONArray
             for(i in 0 until upDamage.size){
@@ -338,6 +347,7 @@ class Damage(private var equipmentData: JSONObject) {
     private val jsonConditionGauge = JSONArray()
     private var isHPAlwaysLow = false
     private var isMythExist = false
+    private var is100Exist = false
 
     private fun combineConditions(code: String, json: JSONArray){
         var reqType = json[0]
@@ -611,6 +621,7 @@ class Damage(private var equipmentData: JSONObject) {
 
     private var optionLevel = 2.6
     private var optionMythLevel = 1.03*1.03*1.03*1.03
+    private var optionNot100Level = 1.0
     private var titlePetPercent = 0.33
     private var pet2ndPassive = 0.0
     private val baseElement = 13.0
@@ -739,10 +750,12 @@ class Damage(private var equipmentData: JSONObject) {
         if(mpOverSkillDamage > 1.25) mpOverSkillDamage = 1.25
         //println("mpOverSkillDamage = $mpOverSkillDamage")
         val mythOptionLevelDamage = if(isMythExist){1.0}else{optionMythLevel} // 노신화 보정 스증
+        val not100OptionLevelDamage = if(is100Exist){1.0}else{optionNot100Level}
         println("mythOptionLevelDamage = $mythOptionLevelDamage")
 
         var sumDamage = ((damage100 + damage105) * skillDamage * stat * atk *
-                (1.05 + 0.0045 * maxElement) * passiveDamage * mpOverSkillDamage * mythOptionLevelDamage
+                (1.05 + 0.0045 * maxElement) * passiveDamage * mpOverSkillDamage * mythOptionLevelDamage *
+                not100OptionLevelDamage
                 )
 
         val statusDamageMap = HashMap<String, Double>()
