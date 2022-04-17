@@ -4,6 +4,7 @@ import org.dnf_calc_n.Common;
 import org.dnf_calc_n.calculate.Buff;
 import org.dnf_calc_n.calculate.Damage;
 import org.dnf_calc_n.data.LoadJob;
+import org.dnf_calc_n.data.LoadString;
 import org.dnf_calc_n.ui.component.RoundButton;
 import org.dnf_calc_n.ui.sub.WindowCustom;
 import org.json.simple.JSONObject;
@@ -47,7 +48,7 @@ public class PanelCustom extends JPanel {
         createCustomSection();
 
         RoundButton customBtn = new RoundButton();
-        customBtn.setText("커스텀");
+        customBtn.setText(LoadString.strGet("커스텀"));
         customBtn.setFont(mapFont.get("bold"));
         customBtn.setBackground(new Color(200, 200, 200));
         customBtn.setBounds(120, 100, 60, 40);
@@ -74,7 +75,7 @@ public class PanelCustom extends JPanel {
         JSONObject json = common.loadJsonObject("cache/selected.json");
 
         JLabel nowLabelOption = new JLabel();
-        nowLabelOption.setText("장비옵션레벨 :");
+        nowLabelOption.setText(LoadString.strGet("장비옵션레벨 :"));
         nowLabelOption.setFont(mapFont.get("bold"));
         nowLabelOption.setForeground(Color.WHITE);
         nowLabelOption.setBounds(10, 70, 100, 18);
@@ -103,7 +104,7 @@ public class PanelCustom extends JPanel {
 
 
         JLabel nowLabel = new JLabel();
-        nowLabel.setText(" 직업 :");
+        nowLabel.setText(LoadString.strGet(" 직업 :"));
         nowLabel.setFont(mapFont.get("bold"));
         nowLabel.setForeground(Color.WHITE);
         nowLabel.setBounds(10, 10, 60, 18);
@@ -166,12 +167,14 @@ public class PanelCustom extends JPanel {
         mapWidgetCombo.put("jobType", jobTypeCombo);
 
         JLabel nowLabel3 = new JLabel();
-        nowLabel3.setText("쿨감보정 : ");
+        nowLabel3.setText(LoadString.strGet("쿨감보정 :"));
         nowLabel3.setFont(mapFont.get("bold"));
         nowLabel3.setForeground(Color.WHITE);
         nowLabel3.setBounds(10, 98, 100, 18);
         customPanel.add(nowLabel3);
-        String[] coolStrings = {"원쿨감", "보정값"};
+        String[] coolStrings = {
+                LoadString.strGet("원쿨감"), LoadString.strGet("보정값")
+        };
         JComboBox<String> comboCool = new JComboBox<>(coolStrings);
         comboCool.setFont(mapFont.get("normal"));
         comboCool.setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -186,9 +189,9 @@ public class PanelCustom extends JPanel {
         });
         String nowCool;
         try{
-            nowCool = (String) json.get("cool");
+            nowCool = LoadString.strGet((String) json.get("cool"));
         }catch (Exception e){
-            nowCool = "원쿨감";
+            nowCool = LoadString.strGet("원쿨감");
         }
         comboCool.setSelectedItem(nowCool);
         customPanel.add(comboCool);

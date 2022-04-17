@@ -22,9 +22,11 @@ public class WindowUpdate extends JFrame {
     Common common = new Common();
     HashMap<String, Font> mapFont;
     JPanel panelUpdate;
+    WindowUpdate window;
 
     String nowVersion;
     public WindowUpdate(String nowVersion) {
+        window = this;
         this.nowVersion = nowVersion;
         mapFont = common.loadFont();
         setResizable(false);
@@ -121,6 +123,7 @@ public class WindowUpdate extends JFrame {
                 catch (IOException | URISyntaxException d) {
                     d.printStackTrace();
                 }
+                window.dispose();
             });
             panelUpdate.add(btn);
         }else{

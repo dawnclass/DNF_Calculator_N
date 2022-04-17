@@ -2,6 +2,7 @@ package org.dnf_calc_n.ui.main;
 
 import org.dnf_calc_n.Common;
 import org.dnf_calc_n.calculate.ScoreFarming;
+import org.dnf_calc_n.data.LoadString;
 import org.dnf_calc_n.ui.component.RoundButton;
 import org.dnf_calc_n.ui.sub.WindowExplain;
 import org.dnf_calc_n.ui.sub.WindowFarming;
@@ -52,7 +53,7 @@ public class PanelInfo extends JPanel {
         scoreFarming = new ScoreFarming(equipmentData);
         updateInfo();
 
-        RoundButton farmingBtn = new RoundButton("파밍 분석");
+        RoundButton farmingBtn = new RoundButton(LoadString.strGet("파밍 분석"));
         farmingBtn.setFont(common.loadFont().get("normal_bold"));
         farmingBtn.setBounds(5, 120,75, 30);
         farmingBtn.addActionListener(e->{

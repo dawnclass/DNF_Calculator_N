@@ -5,6 +5,7 @@ import org.dnf_calc_n.calculate.Buff;
 import org.dnf_calc_n.calculate.Damage;
 import org.dnf_calc_n.data.LoadImage;
 import org.dnf_calc_n.data.LoadJob;
+import org.dnf_calc_n.data.LoadString;
 import org.dnf_calc_n.ui.component.RoundButton;
 import org.dnf_calc_n.ui.sub.WindowExplain;
 import org.dnf_calc_n.ui.sub.WindowSave;
@@ -60,6 +61,7 @@ public class WindowMainNew extends JFrame {
             charset.set(null,null);
         }
         catch(Exception ignored){}
+        LoadString loadString = new LoadString();
         EventQueue.invokeLater(() -> {
             try {
                 WindowMainNew frame = new WindowMainNew();
@@ -83,7 +85,7 @@ public class WindowMainNew extends JFrame {
         mapIconExtra = loadImage.loadAllImageExtra();
         mapFont = common.loadFont();
         setResizable(false);
-        setTitle("에픽조합계산기N "+nowVersion);
+        setTitle(LoadString.strGet("에픽조합계산기N") + " "+nowVersion);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1024, 720);
         setLocationRelativeTo(null);
@@ -131,7 +133,7 @@ public class WindowMainNew extends JFrame {
         mainPanel.add(twip);
 
         RoundButton update = new RoundButton();
-        update.setText("버전확인");
+        update.setText(LoadString.strGet("버전확인"));
         update.setBounds(930, 560, 67, 56);
         update.setBackground(Color.LIGHT_GRAY);
         update.setFont(mapFont.get("normal_bold"));

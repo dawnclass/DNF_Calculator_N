@@ -3,6 +3,7 @@ package org.dnf_calc_n.ui.main;
 import org.dnf_calc_n.Common;
 import org.dnf_calc_n.calculate.Buff;
 import org.dnf_calc_n.calculate.Damage;
+import org.dnf_calc_n.data.LoadString;
 import org.dnf_calc_n.ui.component.RoundButton;
 import org.dnf_calc_n.ui.sub.WindowCustom;
 import org.dnf_calc_n.ui.sub.WindowExplain;
@@ -93,10 +94,10 @@ public class PanelSelect extends JPanel {
                 String code = (String) o;
                 boolean isPassed = panelInfo.setEquipment(code);
                 if(!isPassed){
-                    JLabel alertLabel = new JLabel("신화 중복 선택");
+                    JLabel alertLabel = new JLabel(LoadString.strGet("신화 중복 선택"));
                     alertLabel.setFont(mapFont.get("bold"));
                     JOptionPane.showMessageDialog(
-                            this, alertLabel, "오류",
+                            this, alertLabel, LoadString.strGet("오류"),
                             JOptionPane.ERROR_MESSAGE
                     );
                     return;
@@ -111,18 +112,20 @@ public class PanelSelect extends JPanel {
 
     private void makeExtraButton(){
         JButton resetButton = new JButton();
-        resetButton.setText("<html><body style='text-align:center;'>선택<br>초기화</body></html>");
+        resetButton.setText(LoadString.strGet("<html><body style='text-align:center;'>선택<br>초기화</body></html>"));
         resetButton.setHorizontalAlignment(JLabel.CENTER);
         resetButton.setBackground(new Color(255, 157, 157));
         resetButton.setForeground(Color.BLACK);
         resetButton.setBounds(265, 10, 80, 50);
         resetButton.setFont(mapFont.get("bold"));
         resetButton.addActionListener(e -> {
-            String[] answers = {"초기화", "취소"};
-            JLabel alertLabel = new JLabel("정말로 초기화하겠습니까?");
+            String[] answers = {
+                    LoadString.strGet("초기화"), LoadString.strGet("취소")
+            };
+            JLabel alertLabel = new JLabel(LoadString.strGet("정말로 초기화하겠습니까?"));
             alertLabel.setFont(mapFont.get("bold"));
             int ans = JOptionPane.showOptionDialog(
-                    panelSelect, alertLabel, "확인 알림",
+                    panelSelect, alertLabel, LoadString.strGet("확인 알림"),
                     JOptionPane.YES_NO_CANCEL_OPTION,
                     JOptionPane.INFORMATION_MESSAGE, null, answers, answers[0]
             );
@@ -135,7 +138,7 @@ public class PanelSelect extends JPanel {
         this.add(resetButton);
 
         JButton saveButton = new JButton();
-        saveButton.setText("<html><body style='text-align:center;'>세이브<br>로드</body></html>");
+        saveButton.setText(LoadString.strGet("<html><body style='text-align:center;'>세이브<br>로드</body></html>"));
         saveButton.setHorizontalAlignment(JLabel.CENTER);
         saveButton.setBackground(new Color(157, 214, 255));
         saveButton.setForeground(Color.BLACK);
@@ -183,7 +186,7 @@ public class PanelSelect extends JPanel {
         this.add(panelFilter);
 
         // 이름으로 검색하는 기능
-        JLabel labelSearch = new JLabel("이름검색 :");
+        JLabel labelSearch = new JLabel(LoadString.strGet("이름검색 :"));
         labelSearch.setBorder(new EmptyBorder(0,0,0,0));
         labelSearch.setBounds(5, 3, 70, 20);
         labelSearch.setForeground(Color.WHITE);
@@ -335,20 +338,20 @@ public class PanelSelect extends JPanel {
                         for (Object o : themeArray) {
                             nowExplain.append(o).append(" ");
                         }
-                        nowExplain.append("<br>피증 : ");
+                        nowExplain.append("<br>"+LoadString.strGet("피증")+" : ");
                         JSONArray damageArray = (JSONArray)nowItem.get("옵션피증");
                         for (Object o : damageArray) {
                             Double oo = (Double) o;
                             nowExplain.append(oo.intValue()).append(" ");
                         }
-                        nowExplain.append("<br>버프 : ");
+                        nowExplain.append("<br>"+LoadString.strGet("버프")+" : ");
                         //nowExplain.append(((Double)nowItem.get("basicBuff")).intValue()).append(" / ");
                         JSONArray buffArray = (JSONArray)nowItem.get("옵션버프");
                         for (Object o : buffArray) {
                             Double oo = (Double) o;
                             nowExplain.append(oo.intValue()).append(" ");
                         }
-                        nowExplain.append("<br>드랍 : ");
+                        nowExplain.append("<br>"+LoadString.strGet("드랍")+" : ");
                         JSONArray dropArray = (JSONArray)nowItem.get("드랍");
                         for (Object o : dropArray) {
                             nowExplain.append(o).append(" ");
@@ -372,10 +375,10 @@ public class PanelSelect extends JPanel {
                     // System.out.println("눌림 : "+code);
                     boolean isPassed = panelInfo.setEquipment(code);
                     if(!isPassed){
-                        JLabel alertLabel = new JLabel("신화 중복 선택");
+                        JLabel alertLabel = new JLabel(LoadString.strGet("신화 중복 선택"));
                         alertLabel.setFont(mapFont.get("bold"));
                         JOptionPane.showMessageDialog(
-                                panelSelect, alertLabel, "오류",
+                                panelSelect, alertLabel, LoadString.strGet("오류"),
                                 JOptionPane.ERROR_MESSAGE
                         );
                         return;
@@ -411,8 +414,10 @@ public class PanelSelect extends JPanel {
             "77", "11", "12", "13", "14", "15",
             "21", "22", "23", "31", "32", "33"};
     private final String[] NAMES = {"<HTML>전<br>체</HTML>",
-            "무기", "상의", "하의", "어깨", "벨트", "신발",
-            "팔찌", "목걸", "반지", "보장", "법석", "귀걸"};
+            LoadString.strGet("무기"), LoadString.strGet("상의"), LoadString.strGet("하의"),
+            LoadString.strGet("어깨"), LoadString.strGet("벨트"), LoadString.strGet("신발"),
+            LoadString.strGet("팔찌"), LoadString.strGet("목걸"), LoadString.strGet("반지"),
+            LoadString.strGet("보장"), LoadString.strGet("법석"), LoadString.strGet("귀걸")};
     private void makePartButton(){
         for(int i=0;i<13;i++){
             final String tag = TAGS[i];

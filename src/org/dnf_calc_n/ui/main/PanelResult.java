@@ -1,6 +1,7 @@
 package org.dnf_calc_n.ui.main;
 
 import org.dnf_calc_n.Common;
+import org.dnf_calc_n.data.LoadString;
 import org.json.simple.JSONObject;
 
 import javax.swing.*;
@@ -55,10 +56,10 @@ public class PanelResult extends JPanel {
     int[][] group = {groupTotal, group0, group1, group2, group3, group4};
     private void setDamageValue(Double[] damageArray, Double[] coolDamageArray, Double[] coolDownArray){
         DecimalFormat formatter = new DecimalFormat("###,###");
-        damageValueLabel.get("종합").setText("추가예정");
-        damageValueLabel.get("종합2").setText("추가예정");
-        damageValueLabel.get("평타기숙").setText(formatter.format(damageArray[0]*100));
-        damageValueLabel.get("평타기숙2").setText("-");
+        damageValueLabel.get(LoadString.strGet("종합")).setText(LoadString.strGet("추가예정"));
+        damageValueLabel.get(LoadString.strGet("종합")+"2").setText(LoadString.strGet("추가예정"));
+        damageValueLabel.get(LoadString.strGet("평타기숙")).setText(formatter.format(damageArray[0]*100));
+        damageValueLabel.get(LoadString.strGet("평타기숙")+"2").setText("-");
         for(int i=2;i<6;i++){
             double value = 0;
             double value2 = 0;
@@ -83,12 +84,13 @@ public class PanelResult extends JPanel {
     static boolean isCoolOriginal = true;
     public void toggleCoolMode(){
         JSONObject nowJson = common.loadJsonObject("cache/selected.json");
-        if("원쿨감".equals(nowJson.get("cool"))){
+        if(LoadString.strGet("원쿨감").equals(
+                LoadString.strGet((String)nowJson.get("cool")))){
             isCoolOriginal = true;
-            nowLabelWithDamage.setText("쿨감%");
+            nowLabelWithDamage.setText(LoadString.strGet("쿨감%"));
         }else{
             isCoolOriginal = false;
-            nowLabelWithDamage.setText("쿨감보정");
+            nowLabelWithDamage.setText(LoadString.strGet("쿨감보정"));
         }
     }
 
@@ -169,13 +171,17 @@ public class PanelResult extends JPanel {
             }
             g.setColor(new Color(0, 0, 0));
             g.setFont(new Font("맑은 고딕", Font.BOLD, 12));
-            g.drawString("←증가  쿨타임  감소→", 55, 14);
+            g.drawString(LoadString.strGet("←증가  쿨타임  감소→"), 55, 14);
         }
     }
 
     JLabel nowLabelWithDamage;
     HashMap<String, JLabel> damageValueLabel = new HashMap<>();
-    String[] tagDamageValue = {"종합", "평타기숙", "기본스킬", "하급스킬", "상급스킬", "각성스킬"};
+    String[] tagDamageValue = {
+            LoadString.strGet("종합"), LoadString.strGet("평타기숙"),
+            LoadString.strGet("기본스킬"), LoadString.strGet("하급스킬"),
+            LoadString.strGet("상급스킬"), LoadString.strGet("각성스킬")
+    };
     private void makeDamagePanel(){
         damagePanel = new JPanel();
         damagePanel.setBackground(new Color(34, 32, 37));
@@ -183,14 +189,14 @@ public class PanelResult extends JPanel {
         damagePanel.setBounds(260, 5, 185, 305);
         damagePanel.setLayout(null);
         this.add(damagePanel);
-        JLabel nowLabelDamage = new JLabel("<장비 데미지%>");
+        JLabel nowLabelDamage = new JLabel(LoadString.strGet("<장비 데미지%>"));
         nowLabelDamage.setFont(mapFont.get("bold"));
         nowLabelDamage.setBackground(new Color(34, 32, 37));
         nowLabelDamage.setForeground(Color.WHITE);
         nowLabelDamage.setBounds(0, 0, 185, 30);
         nowLabelDamage.setHorizontalAlignment(JLabel.CENTER);
         damagePanel.add(nowLabelDamage);
-        JLabel nowLabelOnlyDamage = new JLabel("순데미지%");
+        JLabel nowLabelOnlyDamage = new JLabel(LoadString.strGet("순데미지%"));
         nowLabelOnlyDamage.setFont(mapFont.get("small_bold"));
         nowLabelOnlyDamage.setBackground(new Color(34, 32, 37));
         nowLabelOnlyDamage.setForeground(new Color(255, 132, 132));
@@ -199,9 +205,9 @@ public class PanelResult extends JPanel {
         damagePanel.add(nowLabelOnlyDamage);
         String coolText;
         if(isCoolOriginal){
-            coolText = "쿨감%";
+            coolText = LoadString.strGet("쿨감%");
         }else{
-            coolText = "쿨감보정%";
+            coolText = LoadString.strGet("쿨감보정");
         }
         nowLabelWithDamage = new JLabel(coolText);
         nowLabelWithDamage.setFont(mapFont.get("small_bold"));
@@ -272,14 +278,18 @@ public class PanelResult extends JPanel {
         buffPanel.setBounds(260, 315, 185, 180);
         buffPanel.setLayout(null);
         this.add(buffPanel);
-        JLabel nowLabelBuff = new JLabel("<버프점수 계산>");
+        JLabel nowLabelBuff = new JLabel(LoadString.strGet("<버프점수 계산>"));
         nowLabelBuff.setFont(mapFont.get("bold"));
         nowLabelBuff.setBackground(new Color(34, 32, 37));
         nowLabelBuff.setForeground(Color.WHITE);
         nowLabelBuff.setBounds(0, 0, 185, 30);
         nowLabelBuff.setHorizontalAlignment(JLabel.CENTER);
         buffPanel.add(nowLabelBuff);
-        String[] tag = {"총버프력","축스탯", "축공격력", "각성스탯", "버프점수"};
+        String[] tag = {
+                LoadString.strGet("총버프력"),LoadString.strGet("축스탯"),
+                LoadString.strGet("축공격력"),
+                LoadString.strGet("각성스탯"), LoadString.strGet("버프점수")
+        };
         for(int i=0;i<5;i++){
             JLabel nowLabel = new JLabel(tag[i]);
             nowLabel.setFont(mapFont.get("bold"));
