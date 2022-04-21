@@ -27,7 +27,7 @@ public class WindowFarming extends JFrame {
     InfoPanel infoPanel;
     ScoreFarming scoreFarming;
 
-    public WindowFarming(HashMap<String, String> mapEquipment,
+    public WindowFarming(JPanel root, HashMap<String, String> mapEquipment,
                          HashMap<String, ImageIcon> mapIconItem, HashMap<String, ImageIcon> mapIconExtra,
                          JSONObject equipmentData){
         this.equipmentData = equipmentData;
@@ -39,7 +39,7 @@ public class WindowFarming extends JFrame {
         setResizable(false);
         setTitle("파밍 분석");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(root);
         setSize(495, 505);
         setBackground(new Color(34, 32, 37));
         panelWindow = new JPanel();

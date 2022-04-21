@@ -26,6 +26,7 @@ public class WindowSave extends JFrame {
     PanelInfo panelInfo;
 
     public WindowSave(
+            JPanel root,
             PanelSelect panelSelect, PanelInfo panelInfo,
             HashMap<String, JComboBox<String>> mapWidgetCombo
     ){
@@ -37,6 +38,7 @@ public class WindowSave extends JFrame {
         setTitle("세이브 로드");
         setBounds(300, 200, 220, 210);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(root);
         savePanel = new JPanel();
         savePanel.setLayout(null);
         savePanel.setBackground(new Color(45, 46, 52));

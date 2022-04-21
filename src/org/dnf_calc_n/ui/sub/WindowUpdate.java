@@ -1,6 +1,8 @@
 package org.dnf_calc_n.ui.sub;
 
 import org.dnf_calc_n.Common;
+import org.dnf_calc_n.data.LoadString;
+import org.dnf_calc_n.ui.main.WindowMainNew;
 import org.json.simple.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -25,16 +27,16 @@ public class WindowUpdate extends JFrame {
     WindowUpdate window;
 
     String nowVersion;
-    public WindowUpdate(String nowVersion) {
+    public WindowUpdate(String nowVersion, WindowMainNew root) {
         window = this;
         this.nowVersion = nowVersion;
         mapFont = common.loadFont();
         setResizable(false);
-        setTitle("패치노트");
+        setTitle(LoadString.strGet("패치노트"));
         setSize(400, 440);
         setAlwaysOnTop(true);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(root);
 
         panelUpdate = new JPanel();
         panelUpdate.setLayout(null);
@@ -87,7 +89,7 @@ public class WindowUpdate extends JFrame {
     private void makeButtonSection(){
         JLabel label = new JLabel();
         label.setText(updateText.toString());
-        label.setFont(mapFont.get("normal_bold"));
+        label.setFont(mapFont.get("normal"));
         label.setForeground(Color.WHITE);
 
         JScrollPane scroll = new JScrollPane(
@@ -108,7 +110,7 @@ public class WindowUpdate extends JFrame {
             latestVer = 1;
         }
         if(nowVer < latestVer){
-            JButton btn = new JButton("최신버전이 아닙니다. (업데이트 링크)");
+            JButton btn = new JButton(LoadString.strGet("최신버전이 아닙니다. (업데이트 링크)"));
             btn.setFont(mapFont.get("bold"));
             btn.setBounds(0, 361, 395, 50);
             btn.setBackground(Color.LIGHT_GRAY);
@@ -127,7 +129,7 @@ public class WindowUpdate extends JFrame {
             });
             panelUpdate.add(btn);
         }else{
-            JButton btn = new JButton("최신버전입니다. (다신 보지 않기)");
+            JButton btn = new JButton(LoadString.strGet("최신버전입니다. (다신 보지 않기)"));
             btn.setFont(mapFont.get("bold"));
             btn.setBounds(0, 361, 395, 50);
             btn.setBackground(Color.LIGHT_GRAY);

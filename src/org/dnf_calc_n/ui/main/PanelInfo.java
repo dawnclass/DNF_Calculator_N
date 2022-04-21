@@ -4,22 +4,24 @@ import org.dnf_calc_n.Common;
 import org.dnf_calc_n.calculate.ScoreFarming;
 import org.dnf_calc_n.data.LoadString;
 import org.dnf_calc_n.ui.component.RoundButton;
+import org.dnf_calc_n.ui.sub.WindowCustomOption;
 import org.dnf_calc_n.ui.sub.WindowExplain;
 import org.dnf_calc_n.ui.sub.WindowFarming;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class PanelInfo extends JPanel {
 
     Common common = new Common();
 
+    public HashMap<String, String[]> mapCustomOption = new HashMap<>();
+    public HashMap<String, String[]> getMapCustomOption() { return mapCustomOption; }
     public HashMap<String, String> mapEquipments = new HashMap<>();
     public HashMap<String, String> getMapEquipments(){
         return mapEquipments;
@@ -31,6 +33,7 @@ public class PanelInfo extends JPanel {
     HashMap<String, ImageIcon> mapIconItem;
     HashMap<String, ImageIcon> mapIconExtra;
     JSONObject equipmentData;
+    JPanel root;
 
     WindowFarming windowFarming;
     WindowExplain windowExplain;
@@ -41,6 +44,7 @@ public class PanelInfo extends JPanel {
                      HashMap<String, ImageIcon> mapIconExtra,
                      JSONObject equipmentData,
                      WindowExplain windowExplain){
+        this.root = root;
         this.equipmentData = equipmentData;
         this.windowExplain = windowExplain;
         this.mapIconItem = mapIconItem;
@@ -60,7 +64,7 @@ public class PanelInfo extends JPanel {
             try{
                 windowFarming.dispose();
             }catch (Exception ignored){}
-            windowFarming = new WindowFarming(
+            windowFarming = new WindowFarming( root,
                     mapEquipments, mapIconItem, mapIconExtra, equipmentData
             );
             windowFarming.setVisible(true);
@@ -70,8 +74,10 @@ public class PanelInfo extends JPanel {
     }
 
     String selectedMyth = "";
+    List<String> isCustomCodeArray = Arrays.asList("012", "022", "032");
 
     public boolean setEquipment(String equipment){
+
         String code;
         boolean isMyth = false;
         if(equipment.length()==6){
@@ -139,6 +145,7 @@ public class PanelInfo extends JPanel {
                 );
                 nowBtn.addActionListener(e -> {
                     windowExplain.getEquipmentCode(mapEquipments.get(tag));
+                    windowExplain.setLocationRelativeTo(this);
                     windowExplain.setVisible(true);
                 });
             }else{

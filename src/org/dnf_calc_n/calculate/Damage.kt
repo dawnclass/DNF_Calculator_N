@@ -9,10 +9,11 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.math.pow
 
-class Damage(private var equipmentData: JSONObject) {
+class Damage(private var equipmentData: JSONObject, private var customData: JSONObject) {
 
     private lateinit var job : String
     private lateinit var arrayEquipment : Array<String>
+    private var arrayCustomOption = ArrayList<String>()
     private val common = Common()
     //private var jobSkillData : JSONObject = common.loadJsonObject("")
     private var mapResult = HashMap<String, String>()
@@ -27,13 +28,16 @@ class Damage(private var equipmentData: JSONObject) {
         isBuffer = false
         mapResult.clear()
         arrayEquipment = Array(13){""}
+        arrayCustomOption.clear()
         arrayUpDamage = Array(4){0.0}
         listArrayLeveling.clear()
+        listArrayActiveLeveling.clear()
         listArrayCoolDown.clear()
         listArrayCoolRecover.clear()
         listArraySkillDamage.clear()
         listArrayElement.clear()
         arrayLeveling = Array<Double>(19){0.0}
+        arrayActiveLeveling = Array<Double>(19){0.0}
         arrayCoolDown = Array<Double>(19){0.0}
         arrayCoolRecover = Array<Double>(19){0.0}
         arraySkillDamage = Array<Double>(19){1.0}
@@ -55,6 +59,7 @@ class Damage(private var equipmentData: JSONObject) {
     }
 
     private fun resetCondition(){
+        listArrayActiveLevelingCondition.clear()
         listArrayLevelingCondition.clear()
         listArrayCoolDownCondition.clear()
         listArrayCoolRecoverCondition.clear()
@@ -120,8 +125,50 @@ class Damage(private var equipmentData: JSONObject) {
             arrayEquipment[index] = v
         }
         loadEquipmentData()
+        loadCustomOptionData()
         loadCustomData()
         return true
+    }
+
+    private fun loadCustomOptionData(){
+        val jsonCustom = (jsonSave["customOption"] ?: return) as JSONObject
+        for(equipment in arrayEquipment){
+            if(jsonCustom[equipment] != null){
+                val nowJsonArray = jsonCustom[equipment] as JSONArray
+                nowJsonArray.forEach { v -> arrayCustomOption.add(v as String) }
+            }
+        }
+
+        for(code in arrayCustomOption){
+            val nowJson : JSONObject = (customData[code] ?: continue) as JSONObject
+
+            val upDamage : Double = nowJson["피증"] as Double
+            arrayUpDamage[0] += upDamage
+
+            for(j in simpleSumKeys.indices){
+                try{
+                    val nowKey = simpleSumKeys[j]
+                    val nowValue = nowJson[nowKey] as Double
+                    simpleSumOptions[nowKey] = (simpleSumOptions[nowKey] ?: 0.0) + nowValue
+                }catch (ignored: Exception){}
+            }
+
+            for(j in mapKey.indices){ // 태그가 있는 상변류들
+                try{
+                    val statusTransJson : JSONArray = nowJson[mapKey[j]] as JSONArray
+                    val nowType = statusTransJson[0] as String
+                    val nowValue = statusTransJson[1] as Double
+                    mapValue[j][nowType] = (mapValue[j][nowType] ?: 0.0) + nowValue
+                }catch (ignored: Exception){}
+            }
+
+            if(nowJson["조건부"] != null){
+                val conditionJson = nowJson["조건부"] as JSONArray
+                for(now in conditionJson){
+                    combineConditions(code, now as JSONArray)
+                }
+            }
+        }
     }
 
     private val customElementKey = arrayOf(
@@ -337,6 +384,7 @@ class Damage(private var equipmentData: JSONObject) {
         "60", "70", "75", "80", "85", "95", "100"
     )
 
+    private val listArrayActiveLeveling = ArrayList<JSONArray>()
     private val listArrayLeveling = ArrayList<JSONArray>()
     private val listArrayCoolDown = ArrayList<JSONArray>()
     private val listArrayCoolRecover = ArrayList<JSONArray>()
@@ -404,6 +452,9 @@ class Damage(private var equipmentData: JSONObject) {
                 when (applyType) {
                     "레벨" -> {
                         listArrayLeveling.add(parsedUpValue as JSONArray)
+                    }
+                    "액티브레벨" -> {
+                        listArrayActiveLeveling.add(parsedUpValue as JSONArray)
                     }
                     "쿨회복" -> {
                         listArrayCoolRecover.add(parsedUpValue as JSONArray)
@@ -588,6 +639,7 @@ class Damage(private var equipmentData: JSONObject) {
                 "쿨감" -> listArrayCoolDownCondition.add(nowJson["apply"] as JSONArray)
                 "쿨회복" -> listArrayCoolRecoverCondition.add(nowJson["apply"] as JSONArray)
                 "레벨" -> listArrayLevelingCondition.add(nowJson["apply"] as JSONArray)
+                "액티브레벨" -> listArrayActiveLevelingCondition.add(nowJson["apply"] as JSONArray)
                 "상변데미지" -> {
                     val applyJson = nowJson["apply"] as JSONArray
                     val status = applyJson[0] as String
@@ -600,6 +652,7 @@ class Damage(private var equipmentData: JSONObject) {
 
     private var totalDamageCondition = 0.0
     private val listArrayLevelingCondition = ArrayList<JSONArray>()
+    private val listArrayActiveLevelingCondition = ArrayList<JSONArray>()
     private val listArrayCoolDownCondition = ArrayList<JSONArray>()
     private val listArrayCoolRecoverCondition = ArrayList<JSONArray>()
     private val listArraySkillDamageCondition = ArrayList<JSONArray>()
@@ -607,6 +660,7 @@ class Damage(private var equipmentData: JSONObject) {
     private val statusDamageCondition = HashMap<String, Double>()
 
     var arrayLeveling = Array<Double>(19){0.0}
+    var arrayActiveLeveling = Array<Double>(19){0.0}
     private var arrayCoolDown = Array<Double>(19){0.0}
     private var arrayCoolRecover = Array<Double>(19){0.0}
     private var arraySkillDamage = Array<Double>(19){1.0}
@@ -648,6 +702,7 @@ class Damage(private var equipmentData: JSONObject) {
 
     private fun resetArrayData(){
         arrayLeveling = Array<Double>(19){0.0}
+        arrayActiveLeveling = Array<Double>(19){0.0}
         arrayCoolDown = Array<Double>(19){0.0}
         arrayCoolRecover = Array<Double>(19){0.0}
         arraySkillDamage = Array<Double>(19){1.0}
@@ -677,6 +732,9 @@ class Damage(private var equipmentData: JSONObject) {
         }
         for(now in listArrayLeveling + listArrayLevelingCondition){
             for(i in now.indices) arrayLeveling[i] += (now[i] as Double)
+        }
+        for(now in listArrayActiveLeveling + listArrayActiveLevelingCondition){
+            for(i in now.indices) arrayActiveLeveling[i] += (now[i] as Double)
         }
         for(now in listArrayCoolDown + listArrayCoolDownCondition){
             for(i in now.indices) arrayCoolDown[i] = 1-(1-arrayCoolDown[i]) * (1-(now[i] as Double))
@@ -708,7 +766,9 @@ class Damage(private var equipmentData: JSONObject) {
         val summoner60Passive = if(job == "마법사(여) 소환사" && arrayEquipment.contains("31182")){
             10.0}else{0.0} // 용골뿔피리 헤일롬
         for(i in arrayLeveling.indices){
-            var nowUpLv = arrayLeveling[i]+if(i==14){pet2ndPassive}else{0.0}+if(i==12){summoner60Passive}else{0.0}
+            var nowUpLv = (
+                    arrayLeveling[i] + if(i==14){pet2ndPassive}else{0.0}+if(i==12){summoner60Passive}else{0.0}
+                    )
             if(i!=10 && i!=14 && nowUpLv > 10) nowUpLv = 10.0
             passiveDamage *= (nowUpLv * (jobPassiveArray[i] as Double)) + 1.0
         }
@@ -784,7 +844,7 @@ class Damage(private var equipmentData: JSONObject) {
 
         for(i in 0 until 19){
             arrayTotalLevelDamage[i] = (sumDamage *
-                    (1 + (arrayLeveling[i] + levelMax[i]) * levelEfficiency[levelInterval[i]]) /
+                    (1 + (arrayLeveling[i] + +arrayActiveLeveling[i] + levelMax[i]) * levelEfficiency[levelInterval[i]]) /
                     (1 + levelMax[i] * levelEfficiency[levelInterval[i]])
                     ) * arraySkillDamage[i]
             if(levelInterval[i] == 5){

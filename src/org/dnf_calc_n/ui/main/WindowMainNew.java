@@ -7,6 +7,7 @@ import org.dnf_calc_n.data.LoadImage;
 import org.dnf_calc_n.data.LoadJob;
 import org.dnf_calc_n.data.LoadString;
 import org.dnf_calc_n.ui.component.RoundButton;
+import org.dnf_calc_n.ui.sub.WindowCustomOption;
 import org.dnf_calc_n.ui.sub.WindowExplain;
 import org.dnf_calc_n.ui.sub.WindowSave;
 import org.dnf_calc_n.ui.sub.WindowUpdate;
@@ -32,6 +33,7 @@ public class WindowMainNew extends JFrame {
     Damage damage;
     HashMap<String, Font> mapFont;
     JSONObject equipmentData;
+    JSONObject customData;
 
     JPanel mainPanel;
     PanelInfo panelInfo;
@@ -41,6 +43,7 @@ public class WindowMainNew extends JFrame {
     PanelCondition panelCondition;
     WindowUpdate windowUpdate;
     WindowExplain windowExplain;
+    WindowCustomOption windowCustomOption;
 
     JSONObject jsonCache;
 
@@ -79,8 +82,9 @@ public class WindowMainNew extends JFrame {
         LoadImage loadImage = new LoadImage();
         jsonCache = common.loadJsonObject("cache/selected.json");
         equipmentData = common.loadJsonObject("resources/data/equipment_data.json");
-        buff = new Buff(equipmentData);
-        damage = new Damage(equipmentData);
+        customData = common.loadJsonObject("resources/data/custom_data.json");
+        buff = new Buff(equipmentData, customData);
+        damage = new Damage(equipmentData, customData);
         mapIconItem = loadImage.loadAllImageItem();
         mapIconExtra = loadImage.loadAllImageExtra();
         mapFont = common.loadFont();
@@ -96,25 +100,31 @@ public class WindowMainNew extends JFrame {
         mainPanel.setLayout(null);
         JSONObject jsonSave = common.loadJsonObject("cache/saved.json");
         SwingUtilities.invokeLater(() -> {
-            windowUpdate = new WindowUpdate(nowVersion);
+            windowUpdate = new WindowUpdate(nowVersion, this);
             boolean isLatest = windowUpdate.isClientLatest();
                     if(!"1".equals(jsonSave.get("patchNoShow")) || !isLatest) {
                         windowUpdate.setVisible(true);
                     }
         });
 
-        windowExplain = new WindowExplain(equipmentData, mapIconItem);
+        windowExplain = new WindowExplain(equipmentData, mapIconItem, mainPanel);
 
         // 영역 생성
         panelResult = new PanelResult(mainPanel);
         panelCondition = new PanelCondition(mainPanel, damage, buff, panelResult);
-        panelInfo = new PanelInfo(mainPanel, mapIconItem, mapIconExtra, equipmentData, windowExplain);
+        panelInfo = new PanelInfo(
+                mainPanel, mapIconItem, mapIconExtra, equipmentData,
+                windowExplain);
         panelCustom = new PanelCustom(mainPanel, panelResult, panelInfo, panelCondition,
                 mapWidgetCombo, buff, damage);
+        windowCustomOption = new WindowCustomOption(
+                customData, mainPanel, panelSelect, panelInfo, mapIconExtra,
+                panelResult, buff, damage, panelCondition
+        );
         panelSelect = new PanelSelect(
                 mainPanel, panelResult, panelCondition,
                 equipmentData, mapIconItem, panelInfo,
-                buff, damage, mapWidgetCombo, windowExplain
+                buff, damage, mapWidgetCombo, windowExplain, windowCustomOption
         );
 
         JButton twip = new JButton();
@@ -143,7 +153,7 @@ public class WindowMainNew extends JFrame {
             try{
                 windowUpdate.dispose();
             }catch (Exception ignored){}
-            windowUpdate = new WindowUpdate(nowVersion);
+            windowUpdate = new WindowUpdate(nowVersion, this);
             windowUpdate.setVisible(true);
         });
         mainPanel.add(update);

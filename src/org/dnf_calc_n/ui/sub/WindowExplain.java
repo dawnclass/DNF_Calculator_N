@@ -1,6 +1,7 @@
 package org.dnf_calc_n.ui.sub;
 
 import org.dnf_calc_n.Common;
+import org.dnf_calc_n.ui.main.WindowMainNew;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -21,14 +22,16 @@ public class WindowExplain extends JFrame {
     HashMap<String, ImageIcon> mapIconItem;
     JLabel icon, name;
 
-    public WindowExplain(JSONObject equipmentData, HashMap<String, ImageIcon> mapIconItem){
+    public WindowExplain(JSONObject equipmentData,
+                         HashMap<String, ImageIcon> mapIconItem,
+                         JPanel root){
         this.equipmentData = equipmentData;
         this.mapIconItem = mapIconItem;
         mapFont = common.loadFont();
         setResizable(false);
         setTitle("상세 설명");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(root);
 
         GridBagConstraints gbc = new GridBagConstraints();
         panelWindow = new JPanel();
@@ -84,6 +87,7 @@ public class WindowExplain extends JFrame {
 
 
     public void getEquipmentCode(String code){
+        if(code == null) return;
         icon.setIcon(mapIconItem.get(code));
         name.setText((String)((JSONObject)equipmentData.get(code)).get("이름"));
         panelExplain.setElement(code);

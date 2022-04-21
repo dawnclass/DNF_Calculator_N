@@ -9,7 +9,7 @@ import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.roundToInt
 
-class Buff(private var equipmentData: JSONObject) {
+class Buff(private var equipmentData: JSONObject, private var customData: JSONObject) {
 
     var isBuff = false
     fun getIsBuff(): Boolean{
@@ -18,6 +18,7 @@ class Buff(private var equipmentData: JSONObject) {
 
     private lateinit var job : String
     private lateinit var arrayEquipment : Array<String>
+    private var arrayCustomOption = ArrayList<String>()
     private val common = Common()
     private var buffSkillData : JSONObject = common.loadJsonObject("resources/data/buff_data.json")
     lateinit var mapResult : HashMap<String, String>
@@ -32,6 +33,7 @@ class Buff(private var equipmentData: JSONObject) {
         basicBuff = 0.0
         arrayUpBuff = Array(4){0.0}
         arrayEquipment = Array(13){""}
+        arrayCustomOption.clear()
         basicBuff = 0.0
         mapValueSum.clear()
     }
@@ -122,6 +124,7 @@ class Buff(private var equipmentData: JSONObject) {
             arrayEquipment[index] = v
         }
         loadCustomData()
+        loadCustomOptionData()
         loadEquipmentData()
         isBuff = true
         return true
@@ -231,6 +234,24 @@ class Buff(private var equipmentData: JSONObject) {
         // println("upLvCrux= $upLvCrux")
         // println("arrayUpBuff= ${arrayUpBuff.contentToString()}")
         calculateBuff()
+    }
+
+    private fun loadCustomOptionData(){
+        val jsonCustom = (jsonSave["customOption"] ?: return) as JSONObject
+        for(equipment in arrayEquipment){
+            if(jsonCustom[equipment] != null){
+                val nowJsonArray = jsonCustom[equipment] as JSONArray
+                nowJsonArray.forEach { v -> arrayCustomOption.add(v as String) }
+            }
+        }
+
+        for(code in arrayCustomOption){
+            val nowJson : JSONObject = (customData[code] ?: continue) as JSONObject
+            val upBuff : Double = nowJson["버프"] as Double
+            println("upBuff = $upBuff")
+            arrayUpBuff[0] += upBuff
+        }
+
     }
 
     private var optionLevel = 2.7

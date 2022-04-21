@@ -22,13 +22,14 @@ public class WindowCustom extends JFrame {
     Common common = new Common();
     HashMap<String, Font> mapFont;
 
-    public WindowCustom(PanelCustom panelCustom){
+    public WindowCustom(PanelCustom panelCustom, JPanel root){
         this.panelCustom = panelCustom;
         mapFont = common.loadFont();
         setResizable(false);
         setTitle("커스텀");
         setBounds(200, 200, 960, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(root);
         customPanel = new JPanel();
         customPanel.setLayout(null);
         customPanel.setBackground(new Color(45, 46, 52));

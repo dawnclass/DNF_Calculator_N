@@ -6,6 +6,7 @@ import org.dnf_calc_n.calculate.Damage;
 import org.dnf_calc_n.data.LoadString;
 import org.dnf_calc_n.ui.component.RoundButton;
 import org.dnf_calc_n.ui.sub.WindowCustom;
+import org.dnf_calc_n.ui.sub.WindowCustomOption;
 import org.dnf_calc_n.ui.sub.WindowExplain;
 import org.dnf_calc_n.ui.sub.WindowSave;
 import org.json.simple.JSONArray;
@@ -24,9 +25,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.*;
+import java.util.List;
 
 public class PanelSelect extends JPanel {
 
+    JPanel root;
     Common common = new Common();
     Buff buff;
     Damage damage;
@@ -50,6 +53,7 @@ public class PanelSelect extends JPanel {
     WindowSave windowSave;
     HashMap<String, JComboBox<String>> mapWidgetCombo;
     WindowExplain windowExplain;
+    WindowCustomOption windowCustomOption;
 
     String selectedMyth = "";
     JSONArray equipmentListJson;
@@ -61,8 +65,10 @@ public class PanelSelect extends JPanel {
             PanelInfo panelInfo,
             Buff buff, Damage damage,
             HashMap<String, JComboBox<String>> mapWidgetCombo,
-            WindowExplain windowExplain
+            WindowExplain windowExplain, WindowCustomOption windowCustomOption
     ){
+        this.windowCustomOption = windowCustomOption;
+        this.root = root;
         this.mapWidgetCombo = mapWidgetCombo;
         this.panelSelect = this;
         this.panelResult = panelResult;
@@ -148,7 +154,7 @@ public class PanelSelect extends JPanel {
             try{
                 windowSave.dispose();
             }catch (Exception ignored){}
-            windowSave = new WindowSave(panelSelect, panelInfo, mapWidgetCombo);
+            windowSave = new WindowSave(root, panelSelect, panelInfo, mapWidgetCombo);
             windowSave.startSave();
         });
         this.add(saveButton);
@@ -302,6 +308,8 @@ public class PanelSelect extends JPanel {
         updateEquipmentButton();
     }
 
+    List<String> isCustomCodeArray = Arrays.asList("012", "022", "032");
+
     private void updateEquipmentButton(){
         int len = listEquipment.size();
         panelSelectItem.removeAll();
@@ -369,6 +377,7 @@ public class PanelSelect extends JPanel {
                     System.out.println(releaseTime-clickedTime);
                     if(releaseTime-clickedTime > 500){
                         windowExplain.getEquipmentCode(code);
+                        windowExplain.setLocationRelativeTo(panelSelect);
                         windowExplain.setVisible(true);
                         return;
                     }
@@ -382,6 +391,15 @@ public class PanelSelect extends JPanel {
                                 JOptionPane.ERROR_MESSAGE
                         );
                         return;
+                    }
+                    if(code.length()==5){ // 커스텀
+                        String isCustomCode = code.substring(2, 5);
+                        if(isCustomCodeArray.contains(isCustomCode)){
+                            if(code.equals(panelInfo.getMapEquipments().get(code.substring(0, 2)))){
+                                windowCustomOption.setCustomEquipment(code);
+                            }
+
+                        }
                     }
                     panelInfo.updateInfo();
                     calculationPackage();

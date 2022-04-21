@@ -59,7 +59,7 @@ public class PanelCustom extends JPanel {
                 try{
                     windowCustom.dispose();
                 }catch (Exception ignored){}
-                windowCustom = new WindowCustom(panelCustom);
+                windowCustom = new WindowCustom(panelCustom, root);
                 windowCustom.startCustom();
             }
         });
