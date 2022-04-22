@@ -67,6 +67,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         listArrayElementCondition.clear()
         statusDamageCondition.clear()
         totalDamageCondition = 0.0
+        totalMpConsumptionIncrease = 0.0
         additionalStat = 0.0
     }
 
@@ -411,6 +412,9 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         if(upType=="피해증가"){
             applyType = "피해증가"
             parsedUpValue = upValue
+        }else if(upType=="마나소모량"){
+            applyType = "마나소모량"
+            parsedUpValue = upValue
         }else if(upType.contains("레벨") || upType.contains("쿨회복") ||
             upType.contains("쿨감") || upType.contains("스증") || upType.contains("방무")){
             val strArray = upType.split(" ")
@@ -447,6 +451,8 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
             // 레벨 쿨감 스증 쿨회복 피해증가
             if(upType=="피해증가"){
                 totalDamage += (parsedUpValue ?: 0.0) as Double
+            }else if(upType=="마나소모량"){
+                totalMpConsumptionIncrease += (parsedUpValue ?: 0.0) as Double
             }
             try{
                 when (applyType) {
@@ -634,6 +640,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         for(nowJson in onConditionJsonList){
             when(nowJson["applyType"] as String){
                 "피해증가" -> totalDamageCondition += nowJson["apply"] as Double
+                "마나소모량" -> totalMpConsumptionIncrease += nowJson["apply"] as Double
                 "속성강화" -> listArrayElementCondition.add(nowJson["apply"] as JSONArray)
                 "스증" -> listArraySkillDamageCondition.add(nowJson["apply"] as JSONArray)
                 "쿨감" -> listArrayCoolDownCondition.add(nowJson["apply"] as JSONArray)
@@ -651,6 +658,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
     }
 
     private var totalDamageCondition = 0.0
+    private var totalMpConsumptionIncrease = 0.0
     private val listArrayLevelingCondition = ArrayList<JSONArray>()
     private val listArrayActiveLevelingCondition = ArrayList<JSONArray>()
     private val listArrayCoolDownCondition = ArrayList<JSONArray>()
@@ -805,10 +813,10 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         val damage105 = (totalSumDamage / 1000.0) * (1+titlePetPercent)
 
         var mpOverSkillDamage = if(arrayEquipment.contains("15172")){  // 천재신발 마나 소모량 스증 전환
-            (simpleSumOptions["MP소모량"] ?: 0.0) * 0.05 + 1
+            ((simpleSumOptions["MP소모량"] ?: 0.0) + totalMpConsumptionIncrease) * 0.05 + 1
         }else{1.0}
         if(mpOverSkillDamage > 1.25) mpOverSkillDamage = 1.25
-        //println("mpOverSkillDamage = $mpOverSkillDamage")
+        println("mpOverSkillDamage = $mpOverSkillDamage")
         val mythOptionLevelDamage = if(isMythExist){1.0}else{optionMythLevel} // 노신화 보정 스증
         val not100OptionLevelDamage = if(is100Exist){1.0}else{optionNot100Level}
         println("mythOptionLevelDamage = $mythOptionLevelDamage")
