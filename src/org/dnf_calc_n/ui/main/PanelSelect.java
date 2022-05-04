@@ -308,7 +308,7 @@ public class PanelSelect extends JPanel {
         updateEquipmentButton();
     }
 
-    List<String> isCustomCodeArray = Arrays.asList("012", "022", "032");
+    List<String> isCustomCodeArray = Arrays.asList("012", "022", "032", "242");
 
     private void updateEquipmentButton(){
         int len = listEquipment.size();

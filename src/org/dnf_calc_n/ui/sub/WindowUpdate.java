@@ -141,9 +141,11 @@ public class WindowUpdate extends JFrame {
                     JSONObject saveJson = common.loadJsonObject("cache/saved.json");
                     saveJson.put("patchNoShow", "1");
                     common.saveJson("cache/saved.json", saveJson);
+
                 }catch (Exception d) {
                     d.printStackTrace();
                 }
+                window.dispose();
             });
             panelUpdate.add(btn);
         }

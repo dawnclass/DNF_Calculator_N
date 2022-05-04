@@ -28,6 +28,75 @@ class DamageCondition {
         return arrayReturn
     }
 
+    fun getStatusIndex(i: Int): String {
+        when(i){
+            0 -> return "출혈"
+            1 -> return "중독"
+            2 -> return "화상"
+            3 -> return "감전"
+            4 -> return "빙결"
+            5 -> return "둔화"
+            6 -> return "기절"
+            7 -> return "저주"
+            8 -> return "암흑"
+            9 -> return "석화"
+            10 -> return "수면"
+            11 -> return "혼란"
+            12 -> return "구속"
+        }
+        return ""
+    }
+
+    fun parseStatusResistOption(upType: String, upValue: Double) : Array<Double>{
+        val arrayReturn = Array<Double>(13){0.0}  //출혈 중독 화상 감전 빙결 둔화 기절 저주 암흑 석화 수면 혼란 구속
+        val strArray = upType.split(" ")
+        when(strArray[0]){
+            "출혈" -> arrayReturn[0] = upValue
+            "중독" -> arrayReturn[1] = upValue
+            "화상" -> arrayReturn[2] = upValue
+            "감전" -> arrayReturn[3] = upValue
+            "빙결" -> arrayReturn[4] = upValue
+            "둔화" -> arrayReturn[5] = upValue
+            "기절" -> arrayReturn[6] = upValue
+            "저주" -> arrayReturn[7] = upValue
+            "암흑" -> arrayReturn[8] = upValue
+            "석화" -> arrayReturn[9] = upValue
+            "수면" -> arrayReturn[10] = upValue
+            "혼란" -> arrayReturn[11] = upValue
+            "구속" -> arrayReturn[12] = upValue
+            "모든" -> {
+                for(i in arrayReturn.indices){
+                    arrayReturn[i] = upValue
+                }
+            }
+        }
+        return arrayReturn
+    }
+
+    fun parseSpeedOption(upType: String, upValue: Double) : Array<Double>{
+        val arrayReturn = Array<Double>(3){0.0}  //공캐이
+        val strArray = upType.split(" ")
+        if(strArray[0] == "모든"){
+            arrayReturn[0] = upValue
+            arrayReturn[1] = upValue
+            arrayReturn[2] = upValue
+        }else if(strArray[0] == "공캐"){
+            arrayReturn[0] = upValue
+            arrayReturn[1] = upValue * 1.5
+        }else{
+            if(strArray[0].contains("공")){
+                arrayReturn[0] = upValue
+            }
+            if(strArray[0].contains("캐")){
+                arrayReturn[1] = upValue
+            }
+            if(strArray[0].contains("이")){
+                arrayReturn[2] = upValue
+            }
+        }
+        return arrayReturn
+    }
+
     fun parseLevelArrayOption(str: String, upValue: Double, arrayCubeUse: Array<Int>) : Array<Double>{
         val arrayReturn = Array<Double>(19){0.0}
         if(str.contains(" ")){

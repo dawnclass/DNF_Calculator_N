@@ -81,7 +81,7 @@ public class PanelCustom extends JPanel {
         nowLabelOption.setBounds(10, 70, 100, 18);
         customPanel.add(nowLabelOption);
 
-        String[] optionLvs = {"20", "40", "60", "80"};
+        String[] optionLvs = {"20", "40", "50", "60", "70", "80"};
         String nowOptionLv;
         try{
             nowOptionLv = (String) json.get("optionLv");

@@ -31,6 +31,8 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         arrayCustomOption.clear()
         arrayUpDamage = Array(4){0.0}
         listArrayLeveling.clear()
+        listArrayStatusResist.clear()
+        listArraySpeed.clear()
         listArrayActiveLeveling.clear()
         listArrayCoolDown.clear()
         listArrayCoolRecover.clear()
@@ -61,10 +63,13 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
     private fun resetCondition(){
         listArrayActiveLevelingCondition.clear()
         listArrayLevelingCondition.clear()
+        listArrayStatusResistCondition.clear()
+        listArraySpeedCondition.clear()
         listArrayCoolDownCondition.clear()
         listArrayCoolRecoverCondition.clear()
         listArraySkillDamageCondition.clear()
         listArrayElementCondition.clear()
+        listArrayElementResistCondition.clear()
         statusDamageCondition.clear()
         totalDamageCondition = 0.0
         totalMpConsumptionIncrease = 0.0
@@ -86,21 +91,24 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         optionLevel = when(optionLevelString){
             "20" -> 1.5497
             "40" -> 2.0885
+            "50" -> 2.2917
             "60" -> 2.6088
+            "70" -> 2.8597
             "80" -> 3.1106
             else -> 2.6088
         }
         optionMythLevel = when(optionLevelString){
             "20" -> 1.03*1.03
             "40" -> 1.03*1.03*1.03*1.03
+            "50" -> 1.03*1.03*1.03*1.03*1.03
             "60" -> 1.03*1.03*1.03*1.03*1.03*1.03
+            "70" -> 1.03*1.03*1.03*1.03*1.03*1.03*1.03
             "80" -> 1.03*1.03*1.03*1.03*1.03*1.03*1.03*1.03
             else -> 1.03*1.03*1.03*1.03
         }
         optionNot100Level = when(optionLevelString){
-            "20" -> 1.0
-            "40" -> 1.0
             "60" -> 1.01*1.01*1.01*1.01*1.01*1.01*1.01*1.01*1.01*1.01*1.01
+            "70" -> 1.02*1.02*1.02*1.02*1.02*1.02*1.02*1.02*1.02*1.02*1.02
             "80" -> 1.03*1.03*1.03*1.03*1.03*1.03*1.03*1.03*1.03*1.03*1.03
             else -> 1.0
         }
@@ -387,6 +395,8 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
 
     private val listArrayActiveLeveling = ArrayList<JSONArray>()
     private val listArrayLeveling = ArrayList<JSONArray>()
+    private val listArrayStatusResist = ArrayList<JSONArray>()
+    private val listArraySpeed = ArrayList<JSONArray>()
     private val listArrayCoolDown = ArrayList<JSONArray>()
     private val listArrayCoolRecover = ArrayList<JSONArray>()
     private val listArraySkillDamage = ArrayList<JSONArray>()
@@ -415,6 +425,14 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         }else if(upType=="마나소모량"){
             applyType = "마나소모량"
             parsedUpValue = upValue
+        }else if(upType.contains("내성")){
+            applyType = "상변내성"
+            parsedUpValue = JSONArray()
+            damageCondition.parseStatusResistOption(upType, upValue).forEach { v -> (parsedUpValue as JSONArray).add(v)}
+        }else if(upType.contains("속도")){
+            applyType = "속도"
+            parsedUpValue = JSONArray()
+            damageCondition.parseSpeedOption(upType, upValue).forEach { v -> (parsedUpValue as JSONArray).add(v)}
         }else if(upType.contains("레벨") || upType.contains("쿨회복") ||
             upType.contains("쿨감") || upType.contains("스증") || upType.contains("방무")){
             val strArray = upType.split(" ")
@@ -428,6 +446,10 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         }else if(upType.contains("속성강화")){
             parsedUpValue = JSONArray()
             applyType = "속성강화"
+            damageCondition.parseElementOption(upType, upValue).forEach { v -> (parsedUpValue as JSONArray).add(v)}
+        }else if(upType.contains("속성저항")){
+            parsedUpValue = JSONArray()
+            applyType = "속성저항"
             damageCondition.parseElementOption(upType, upValue).forEach { v -> (parsedUpValue as JSONArray).add(v)}
         }else if(upType.contains("데미지")){
             parsedUpValue = JSONArray()
@@ -449,13 +471,17 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
 
         if(reqType == null){  // 조건부가 없는 표기일 경우
             // 레벨 쿨감 스증 쿨회복 피해증가
-            if(upType=="피해증가"){
-                totalDamage += (parsedUpValue ?: 0.0) as Double
-            }else if(upType=="마나소모량"){
-                totalMpConsumptionIncrease += (parsedUpValue ?: 0.0) as Double
-            }
             try{
                 when (applyType) {
+                    "피해증가" -> {
+                        totalDamage += (parsedUpValue ?: 0.0) as Double
+                    }
+                    "마나소모량" -> {
+                        totalMpConsumptionIncrease += (parsedUpValue ?: 0.0) as Double
+                    }
+                    "상변내성" -> {
+                        listArrayStatusResist.add(parsedUpValue as JSONArray)
+                    }
                     "레벨" -> {
                         listArrayLeveling.add(parsedUpValue as JSONArray)
                     }
@@ -470,6 +496,9 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
                     }
                     "스증" -> {
                         listArraySkillDamage.add(parsedUpValue as JSONArray)
+                    }
+                    "속도" -> {
+                        listArraySpeed.add(parsedUpValue as JSONArray)
                     }
                 }
             }catch (ignored: Exception){}
@@ -642,6 +671,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
                 "피해증가" -> totalDamageCondition += nowJson["apply"] as Double
                 "마나소모량" -> totalMpConsumptionIncrease += nowJson["apply"] as Double
                 "속성강화" -> listArrayElementCondition.add(nowJson["apply"] as JSONArray)
+                "속성저항" -> listArrayElementResistCondition.add(nowJson["apply"] as JSONArray)
                 "스증" -> listArraySkillDamageCondition.add(nowJson["apply"] as JSONArray)
                 "쿨감" -> listArrayCoolDownCondition.add(nowJson["apply"] as JSONArray)
                 "쿨회복" -> listArrayCoolRecoverCondition.add(nowJson["apply"] as JSONArray)
@@ -652,6 +682,8 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
                     val status = applyJson[0] as String
                     statusDamageCondition[status] = (statusDamageCondition[status] ?: 0.0) + (applyJson[1] as Double)
                 }
+                "속도" -> listArraySpeedCondition.add(nowJson["apply"] as JSONArray)
+                "상변내성" -> listArrayStatusResistCondition.add(nowJson["apply"] as JSONArray)
             }
         }
         calculateDamage()
@@ -659,12 +691,15 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
 
     private var totalDamageCondition = 0.0
     private var totalMpConsumptionIncrease = 0.0
+    private val listArraySpeedCondition = ArrayList<JSONArray>()
     private val listArrayLevelingCondition = ArrayList<JSONArray>()
+    private val listArrayStatusResistCondition = ArrayList<JSONArray>()
     private val listArrayActiveLevelingCondition = ArrayList<JSONArray>()
     private val listArrayCoolDownCondition = ArrayList<JSONArray>()
     private val listArrayCoolRecoverCondition = ArrayList<JSONArray>()
     private val listArraySkillDamageCondition = ArrayList<JSONArray>()
     private val listArrayElementCondition = ArrayList<JSONArray>()
+    private val listArrayElementResistCondition = ArrayList<JSONArray>()
     private val statusDamageCondition = HashMap<String, Double>()
 
     var arrayLeveling = Array<Double>(19){0.0}
@@ -730,13 +765,24 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
     )
     private val levelEfficiency = arrayOf(0.0, 0.01, 0.1, 0.15, 0.18, 0.23)
 
+    private var mapSimpleOption = HashMap<String, Double>()
+    private var mapStatusResist = HashMap<String, Double>()
+
     private fun calculateDamage(){
 
         resetArrayData()
+        mapSimpleOption = simpleSumOptions.clone() as HashMap<String, Double>
+        mapStatusResist = statusResist.clone() as HashMap<String, Double>
         //println(jsonConditionGauge.toJSONString())
 
         for(now in listArrayElement + listArrayElementCondition){
-            for(i in now.indices) arrayElement[i] += (now[i] as Double)
+            for(i in now.indices) arrayElement[i] += (now[i] as Double) + now[0] as Double
+        }
+        for(now in listArrayElementResistCondition){
+            mapSimpleOption["화 속성저항"] = (mapSimpleOption["화 속성저항"] ?: 0.0) + now[0] as Double
+            mapSimpleOption["수 속성저항"] = (mapSimpleOption["수 속성저항"] ?: 0.0) + now[1] as Double
+            mapSimpleOption["명 속성저항"] = (mapSimpleOption["명 속성저항"] ?: 0.0) + now[2] as Double
+            mapSimpleOption["암 속성저항"] = (mapSimpleOption["암 속성저항"] ?: 0.0) + now[3] as Double
         }
         for(now in listArrayLeveling + listArrayLevelingCondition){
             for(i in now.indices) arrayLeveling[i] += (now[i] as Double)
@@ -752,6 +798,17 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         }
         for(now in listArraySkillDamage + listArraySkillDamageCondition){
             for(i in now.indices) arraySkillDamage[i] *= (1+(now[i] as Double))
+        }
+        for(now in listArraySpeed + listArraySpeedCondition){
+            mapSimpleOption["공속"] = (mapSimpleOption["공속"] ?: 0.0) + now[0] as Double
+            mapSimpleOption["캐속"] = (mapSimpleOption["캐속"] ?: 0.0) + now[1] as Double
+            mapSimpleOption["이속"] = (mapSimpleOption["이속"] ?: 0.0) + now[2] as Double
+        }
+        for(now in listArrayStatusResist + listArrayStatusResistCondition){
+            for(i in now.indices){
+                val key = damageCondition.getStatusIndex(i)
+                mapStatusResist[key] = (mapStatusResist[key] ?: 0.0) + (now[i] as Double)
+            }
         }
         // println("arraySkillDamage: "+arraySkillDamage.contentToString())
         // println("arrayCubeUse: "+arrayCubeUse.contentToString())
@@ -782,10 +839,10 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         }
         println("passiveDamage = $passiveDamage")
 
-        var totalSumDamage = (totalDamage + totalDamageCondition) * optionLevel
+        var totalSumDamage = totalDamage + totalDamageCondition
 
-        for(d in arrayUpDamage){
-            totalSumDamage += (d * optionLevel)
+        for(now in arrayUpDamage){
+            totalSumDamage += now
         }
 
         val elementArray = Array<Double>(4){baseElement}
@@ -793,6 +850,88 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         elementArray[1] += (simpleSumOptions["수 속성강화"] ?: 0.0) + arrayElement[1] + customElement[1]
         elementArray[2] += (simpleSumOptions["명 속성강화"] ?: 0.0) + arrayElement[2] + customElement[2]
         elementArray[3] += (simpleSumOptions["암 속성강화"] ?: 0.0) + arrayElement[3] + customElement[3]
+        if(arrayEquipment.contains("33142")){  // 귀걸이 타속강 4종 시리즈
+            var upElement = (elementArray[1] / 8).toInt().toDouble()
+            if(upElement > 50.0) upElement = 50.0
+            elementArray[0] += upElement
+            elementArray[2] += upElement
+            elementArray[3] += upElement
+            var downElement = (elementArray[1] / 10).toInt().toDouble()
+            if(downElement > 30.0) downElement = 30.0
+            mapSimpleOption["화 속성저항"] = (mapSimpleOption["화 속성저항"] ?: 0.0) - downElement
+            mapSimpleOption["명 속성저항"] = (mapSimpleOption["명 속성저항"] ?: 0.0) - downElement
+            mapSimpleOption["암 속성저항"] = (mapSimpleOption["암 속성저항"] ?: 0.0) - downElement
+            if(elementArray[1] > 150.0){
+                mapSimpleOption["물크"] = (mapSimpleOption["물크"] ?: 0.0) + 0.15
+                mapSimpleOption["마크"] = (mapSimpleOption["마크"] ?: 0.0) + 0.15
+            }
+        }else if(arrayEquipment.contains("33042")){  // 귀걸이 타속강 4종 시리즈
+            var upElement = (elementArray[0] / 8).toInt().toDouble()
+            if(upElement > 50.0) upElement = 50.0
+            elementArray[1] += upElement
+            elementArray[2] += upElement
+            elementArray[3] += upElement
+            var downElement = (elementArray[0] / 10).toInt().toDouble()
+            if(downElement > 30.0) downElement = 30.0
+            mapSimpleOption["수 속성저항"] = (mapSimpleOption["수 속성저항"] ?: 0.0) - downElement
+            mapSimpleOption["명 속성저항"] = (mapSimpleOption["명 속성저항"] ?: 0.0) - downElement
+            mapSimpleOption["암 속성저항"] = (mapSimpleOption["암 속성저항"] ?: 0.0) - downElement
+            if(elementArray[0] > 150.0){
+                mapSimpleOption["물크"] = (mapSimpleOption["물크"] ?: 0.0) + 0.15
+                mapSimpleOption["마크"] = (mapSimpleOption["마크"] ?: 0.0) + 0.15
+            }
+        }else if(arrayEquipment.contains("33152")){  // 귀걸이 타속강 4종 시리즈
+            var upElement = (elementArray[3] / 8).toInt().toDouble()
+            if(upElement > 50.0) upElement = 50.0
+            elementArray[0] += upElement
+            elementArray[1] += upElement
+            elementArray[2] += upElement
+            var downElement = (elementArray[3] / 10).toInt().toDouble()
+            if(downElement > 30.0) downElement = 30.0
+            mapSimpleOption["화 속성저항"] = (mapSimpleOption["화 속성저항"] ?: 0.0) - downElement
+            mapSimpleOption["수 속성저항"] = (mapSimpleOption["수 속성저항"] ?: 0.0) - downElement
+            mapSimpleOption["명 속성저항"] = (mapSimpleOption["명 속성저항"] ?: 0.0) - downElement
+            if(elementArray[3] > 150.0){
+                mapSimpleOption["물크"] = (mapSimpleOption["물크"] ?: 0.0) + 0.15
+                mapSimpleOption["마크"] = (mapSimpleOption["마크"] ?: 0.0) + 0.15
+            }
+        }else if(arrayEquipment.contains("33082")){  // 귀걸이 타속강 4종 시리즈
+            var upElement = (elementArray[2] / 8).toInt().toDouble()
+            if(upElement > 50.0) upElement = 50.0
+            elementArray[0] += upElement
+            elementArray[1] += upElement
+            elementArray[3] += upElement
+            var downElement = (elementArray[2] / 10).toInt().toDouble()
+            if(downElement > 30.0) downElement = 30.0
+            mapSimpleOption["화 속성저항"] = (mapSimpleOption["화 속성저항"] ?: 0.0) - downElement
+            mapSimpleOption["수 속성저항"] = (mapSimpleOption["수 속성저항"] ?: 0.0) - downElement
+            mapSimpleOption["암 속성저항"] = (mapSimpleOption["암 속성저항"] ?: 0.0) - downElement
+            if(elementArray[2] > 150.0){
+                mapSimpleOption["물크"] = (mapSimpleOption["물크"] ?: 0.0) + 0.15
+                mapSimpleOption["마크"] = (mapSimpleOption["마크"] ?: 0.0) + 0.15
+            }
+        }
+        if(arrayEquipment.contains("11152")) {  // 자수 시리즈
+            if(elementArray[0] > 250.0) mapSimpleOption["화 속성저항"] = (mapSimpleOption["화 속성저항"] ?: 0.0) + 20.0
+        }
+        if(arrayEquipment.contains("13152")) {  // 자수 시리즈
+            if(elementArray[1] > 250.0) mapSimpleOption["수 속성저항"] = (mapSimpleOption["수 속성저항"] ?: 0.0) + 20.0
+        }
+        if(arrayEquipment.contains("14152")) {  // 자수 시리즈
+            if(elementArray[2] > 250.0) mapSimpleOption["명 속성저항"] = (mapSimpleOption["명 속성저항"] ?: 0.0) + 20.0
+        }
+        if(arrayEquipment.contains("15152")) {  // 자수 시리즈
+            if(elementArray[3] > 250.0) mapSimpleOption["암 속성저항"] = (mapSimpleOption["암 속성저항"] ?: 0.0) + 20.0
+        }
+        if(arrayEquipment.contains("11182")){  // 드래곤 슬레이어 상의
+            if(elementArray[0] == elementArray[1]
+                && elementArray[1] == elementArray[2] && elementArray[2] == elementArray[3]){
+                mapSimpleOption["화 속성저항"] = (mapSimpleOption["화 속성저항"] ?: 0.0) + 25.0
+                mapSimpleOption["수 속성저항"] = (mapSimpleOption["수 속성저항"] ?: 0.0) + 25.0
+                mapSimpleOption["명 속성저항"] = (mapSimpleOption["명 속성저항"] ?: 0.0) + 25.0
+                mapSimpleOption["암 속성저항"] = (mapSimpleOption["암 속성저항"] ?: 0.0) + 25.0
+            }
+        }
         var maxElement = 0.0
         var minElement = 9999.0
         for(i in 0 until 4){
@@ -805,25 +944,75 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
             }
         }
         maxElement += arrayElement[4]
+        if(arrayEquipment.contains("22232")){  // 아토믹 코어 네클레스
+            var upCoolRecover = (maxElement/50.0).toInt() * 0.04
+            if(upCoolRecover > 0.24) upCoolRecover = 0.24
+            println("아토믹 목걸이 upCoolRecover = $upCoolRecover")
+            for(i in arrayCoolRecover.indices) arrayCoolRecover[i] += upCoolRecover
+            var upSpeed = (maxElement/50.0).toInt() * 0.03
+            if(upSpeed > 0.15) upSpeed = 0.15
+            mapSimpleOption["공속"] = (mapSimpleOption["공속"] ?: 0.0) + upSpeed
+            mapSimpleOption["캐속"] = (mapSimpleOption["캐속"] ?: 0.0) + upSpeed
+            mapSimpleOption["이속"] = (mapSimpleOption["이속"] ?: 0.0) + upSpeed
+        }
+        var elementMaxSkillDamage = 1.0
+        if(arrayEquipment.contains("23232")){  // 에너지 서치 링
+            if(maxElement >= 300.0){
+                totalSumDamage += 2816.0
+                elementMaxSkillDamage = 1.07
+            }else if(maxElement >= 250){
+                totalSumDamage += 1927.0
+            }else if(maxElement >= 200){
+                totalSumDamage += 1037.0
+            }
+            println("에너지 서치 링 elementMaxSkillDamage = $elementMaxSkillDamage")
+        }
 
         val stat = (((simpleSumOptions["스탯"] ?: 0.0)+customStat[0] + additionalStat) * 4.08 + applyStat) / applyStat
         val atk = (((simpleSumOptions["공격력"] ?: 0.0)+customStat[1]) + applyAtk) / applyAtk
 
         val damage100 = (simpleSumOptions["단리옵"] ?: 0.0) + titlePetPercent + 1
-        val damage105 = (totalSumDamage / 1000.0) * (1+titlePetPercent)
+        val damage105 = (totalSumDamage * optionLevel / 1000.0) * (1+titlePetPercent)
 
+        // 특수 옵션 작성 ///////////////////////////////////////////////////////////////////////////////////////////////
         var mpOverSkillDamage = if(arrayEquipment.contains("15172")){  // 천재신발 마나 소모량 스증 전환
             ((simpleSumOptions["MP소모량"] ?: 0.0) + totalMpConsumptionIncrease) * 0.05 + 1
         }else{1.0}
         if(mpOverSkillDamage > 1.25) mpOverSkillDamage = 1.25
         println("mpOverSkillDamage = $mpOverSkillDamage")
+
+        if(arrayEquipment.contains("11232")){  // 컨퓨즈드 상의
+            var totalStatusResist = 0.0
+            mapStatusResist.forEach { (t, v) ->
+                totalStatusResist += v
+            }
+            var upStatusDamage = totalStatusResist * 0.05
+            if(upStatusDamage > 0.1) upStatusDamage = 0.1
+            if(upStatusDamage < 0.0) upStatusDamage = 0.0
+            println("컨퓨즈드 상의 upStatusDamage = $upStatusDamage")
+            statusDamageCondition["출혈"] = (statusDamageCondition["출혈"] ?: 0.0) + upStatusDamage
+            statusDamageCondition["중독"] = (statusDamageCondition["중독"] ?: 0.0) + upStatusDamage
+            statusDamageCondition["화상"] = (statusDamageCondition["화상"] ?: 0.0) + upStatusDamage
+            statusDamageCondition["감전"] = (statusDamageCondition["감전"] ?: 0.0) + upStatusDamage
+        }
+
+        var cyberSkillDamage = 1.0
+        if(arrayEquipment.contains("15232")) {  // 사이버틱 부츠
+            if((mapSimpleOption["공속"] ?: 0.0) >= 1.40){
+                cyberSkillDamage = 1.3
+            }
+            println("현재 공격속도 = ${mapSimpleOption["공속"]}")
+            println("사이버틱 부츠 cyberSkillDamage = $cyberSkillDamage")
+        }
+
         val mythOptionLevelDamage = if(isMythExist){1.0}else{optionMythLevel} // 노신화 보정 스증
         val not100OptionLevelDamage = if(is100Exist){1.0}else{optionNot100Level}
         println("mythOptionLevelDamage = $mythOptionLevelDamage")
 
-        var sumDamage = ((damage100 + damage105) * skillDamage * stat * atk *
-                (1.05 + 0.0045 * maxElement) * passiveDamage * mpOverSkillDamage * mythOptionLevelDamage *
-                not100OptionLevelDamage
+        val totalSkillDamage = (skillDamage * mpOverSkillDamage * mythOptionLevelDamage *
+                not100OptionLevelDamage * cyberSkillDamage * elementMaxSkillDamage)
+        var sumDamage = ((damage100 + damage105) * totalSkillDamage * stat * atk *
+                (1.05 + 0.0045 * maxElement) * passiveDamage
                 )
 
         val statusDamageMap = HashMap<String, Double>()
