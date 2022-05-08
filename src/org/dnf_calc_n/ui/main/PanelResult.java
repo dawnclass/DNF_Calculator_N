@@ -27,12 +27,13 @@ public class PanelResult extends JPanel {
         this.mapFont = common.loadFont();
         this.root = root;
         this.setBackground(new Color(50, 46, 52));
-        this.setBounds(470, 170, 450, 500);
+        this.setBounds(470, 170, 780, 500);
         this.setLayout(null);
         root.add(this);
 
         damageGraphPanel = new DamageGraphPanel(this, mapFont);
         makeDamagePanel();
+        makeDetailPanel();
         makeBuffPanel();
         // setDamagePanel();
     }
@@ -175,6 +176,16 @@ public class PanelResult extends JPanel {
         }
     }
 
+    JPanel detailPanel;
+    private void makeDetailPanel(){
+        detailPanel = new JPanel();
+        detailPanel.setBackground(new Color(34, 32, 37));
+        detailPanel.setBorder(new LineBorder(Color.DARK_GRAY));
+        detailPanel.setBounds(260+190, 5, 320, 490);
+        detailPanel.setLayout(null);
+        this.add(detailPanel);
+    }
+
     JLabel nowLabelWithDamage;
     HashMap<String, JLabel> damageValueLabel = new HashMap<>();
     String[] tagDamageValue = {
@@ -182,7 +193,7 @@ public class PanelResult extends JPanel {
             LoadString.strGet("기본스킬"), LoadString.strGet("하급스킬"),
             LoadString.strGet("상급스킬"), LoadString.strGet("각성스킬")
     };
-    private void makeDamagePanel(){
+   private void makeDamagePanel(){
         damagePanel = new JPanel();
         damagePanel.setBackground(new Color(34, 32, 37));
         damagePanel.setBorder(new LineBorder(Color.DARK_GRAY));

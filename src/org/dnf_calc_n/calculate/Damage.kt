@@ -769,7 +769,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
     private var mapStatusResist = HashMap<String, Double>()
 
     private fun calculateDamage(){
-
+        detailMap.clear()
         resetArrayData()
         mapSimpleOption = simpleSumOptions.clone() as HashMap<String, Double>
         mapStatusResist = statusResist.clone() as HashMap<String, Double>
@@ -784,6 +784,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
             mapSimpleOption["명 속성저항"] = (mapSimpleOption["명 속성저항"] ?: 0.0) + now[2] as Double
             mapSimpleOption["암 속성저항"] = (mapSimpleOption["암 속성저항"] ?: 0.0) + now[3] as Double
         }
+
         for(now in listArrayLeveling + listArrayLevelingCondition){
             for(i in now.indices) arrayLeveling[i] += (now[i] as Double)
         }
@@ -1066,4 +1067,11 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
 
     }
 
+    var detailMap = HashMap<String, String>()
+    private fun setDetailMap(){
+        detailMap["화속성저항"] = "+"+(mapSimpleOption["화 속성저항"] ?: 0.0).toInt()
+        detailMap["수속성저항"] = "+"+(mapSimpleOption["수 속성저항"] ?: 0.0).toInt()
+        detailMap["명속성저항"] = "+"+(mapSimpleOption["명 속성저항"] ?: 0.0).toInt()
+        detailMap["암속성저항"] = "+"+(mapSimpleOption["암 속성저항"] ?: 0.0).toInt()
+    }
 }

@@ -34,7 +34,7 @@ public class PanelCondition extends JPanel {
         this.mapFont = common.loadFont();
         this.root = root;
         this.setBackground(bgColor);
-        this.setBounds(470, 10, 450, 150);
+        this.setBounds(470, 10, 675, 150);
         this.setLayout(null);
         root.add(this);
     }
@@ -87,7 +87,7 @@ public class PanelCondition extends JPanel {
                 listToggle.add(key);
                 JCheckBox nowCheck = new JCheckBox();
                 nowCheck.setBackground(bgColor);
-                nowCheck.setBounds(145+nowGrid[0]*225, 1+nowGrid[1]*24, 30, 20);
+                nowCheck.setBounds(145+nowGrid[0]*225, 6+nowGrid[1]*24, 30, 20);
                 if(mapSelectCondition.get(key) == null){
                     mapSelectCondition.put(key, "true");
                     nowCheck.setSelected(true);
@@ -133,7 +133,7 @@ public class PanelCondition extends JPanel {
 
                 JComboBox<String> nowCombo = new JComboBox<>(nowArray);
                 nowCombo.setFont(mapFont.get("normal"));
-                nowCombo.setBounds(145+nowGrid[0]*225, 3+nowGrid[1]*24, 65, 20);
+                nowCombo.setBounds(145+nowGrid[0]*225, 5+nowGrid[1]*24, 65, 20);
                 if(mapSelectCondition.get(key) == null){
                     mapSelectCondition.putIfAbsent(key, nowArray[nowArray.length-1]);
                     nowCombo.setSelectedItem(nowArray[nowArray.length-1]);

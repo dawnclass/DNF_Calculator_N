@@ -14,7 +14,9 @@ import org.dnf_calc_n.ui.sub.WindowUpdate;
 import org.json.simple.JSONObject;
 
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
@@ -91,7 +93,7 @@ public class WindowMainNew extends JFrame {
         setResizable(false);
         setTitle(LoadString.strGet("에픽조합계산기N") + " "+nowVersion);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1024, 720);
+        setSize(1280, 720);
         setLocationRelativeTo(null);
         mainPanel = new JPanel();
         mainPanel.setBackground(new Color(34, 32, 37));
@@ -129,7 +131,7 @@ public class WindowMainNew extends JFrame {
 
         JButton twip = new JButton();
         twip.setIcon(mapIconExtra.get("donate"));
-        twip.setBounds(931, 489, 67, 56);
+        twip.setBounds(931+240, 489-479, 67, 56);
         twip.setBackground(new Color(34, 32, 37));
         twip.setBorder(new EmptyBorder(0,0,0,0));
         twip.addActionListener(e -> {
@@ -142,10 +144,13 @@ public class WindowMainNew extends JFrame {
         });
         mainPanel.add(twip);
 
-        RoundButton update = new RoundButton();
-        update.setText(LoadString.strGet("버전확인"));
-        update.setBounds(930, 560, 67, 56);
+        JButton update = new JButton();
+        update.setText(
+                "<html><body style='text-align:center;'>"+nowVersion+"<br>"+LoadString.strGet("버전확인") +"</body></html>"
+        );
+        update.setBounds(930+240, 560-479, 67, 56);
         update.setBackground(Color.LIGHT_GRAY);
+        update.setBorder(new BevelBorder(BevelBorder.RAISED));
         update.setFont(mapFont.get("normal_bold"));
         update.setHorizontalAlignment(JButton.CENTER);
         update.setForeground(Color.BLACK);
@@ -158,12 +163,14 @@ public class WindowMainNew extends JFrame {
         });
         mainPanel.add(update);
 
+        /*
         JLabel maker = new JLabel("<html><body style='text-align:center;'>Made By<br>Dawnclass<br>(새벽반)</body></html>");
         maker.setForeground(Color.WHITE);
-        maker.setBounds(931, 620, 67, 50);
+        maker.setBounds(931+240, 620, 67, 50);
         maker.setHorizontalAlignment(JLabel.CENTER);
         maker.setFont(mapFont.get("small"));
         mainPanel.add(maker);
+         */
 
     }
 
