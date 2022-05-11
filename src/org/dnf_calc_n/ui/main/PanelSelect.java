@@ -180,6 +180,7 @@ public class PanelSelect extends JPanel {
                 damage.getArrayTotalCoolDown(),
                 damage.getArrayTotalLevelDamageWithCool()
         );
+        panelResult.setDetailMap(damage.getDetailMap());
     }
 
     JTextField searchByName;

@@ -48,6 +48,28 @@ public class PanelResult extends JPanel {
         setDamageValue(damageArray, coolDamageArray, coolDownArray);
     }
 
+    HashMap<String, String> detailMap;
+    public void setDetailMap(HashMap<String, String> detailMap){
+        this.detailMap = detailMap;
+
+        for(String key : mapDetailLabel.keySet()){
+            if(detailMap.get(key) == null) continue;
+            String nowText = detailMap.get(key);
+            mapDetailLabel.get(key).setText(nowText);
+            if(nowText.contains("-")){
+                mapDetailLabel.get(key).setForeground(new Color(188, 50, 50));
+            }else if(!nowText.contains("1") && !nowText.contains("2") && !nowText.contains("3") &&
+                    !nowText.contains("4") && !nowText.contains("5") && !nowText.contains("6") &&
+                    !nowText.contains("7") && !nowText.contains("8") && !nowText.contains("9")
+            ){
+                mapDetailLabel.get(key).setForeground(new Color(127, 116, 87));
+            }else{
+                mapDetailLabel.get(key).setForeground(new Color(74, 162, 86));
+            }
+        }
+        detailPanel.updateUI();
+    }
+
     int[] groupTotal = {};
     int[] group0 = {0};
     int[] group1 = {3, 4, 5, 6};
@@ -176,14 +198,62 @@ public class PanelResult extends JPanel {
         }
     }
 
+    String[] tagLayout = {
+            "피해증가", "스킬공격력", "화속성강화", "수속성강화", "명속성강화", "암속성강화",
+            "화속성저항", "수속성저항", "명속성저항", "암속성저항", "공격속도", "캐스팅속도",
+            "이동속도", "크리티컬", "출혈전환", "출혈뎀증", "중독전환", "중독뎀증",
+            "화상전환", "화상뎀증", "감전전환", "감전뎀증",
+
+            "마나소모량", "물리방어력", "마법방어력", "회피율", "적중률", "HP회복량",
+            "MP회복량", "HP MAX", "MP MAX", "출혈내성", "중독내성", "화상내성",
+            "감전내성", "빙결내성", "둔화내성", "기절내성", "저주내성", "암흑내성",
+            "석화내성", "수면내성", "혼란내성", "구속내성"
+    };
+    HashMap<String, JLabel> mapDetailLabel = new HashMap<>();
     JPanel detailPanel;
     private void makeDetailPanel(){
         detailPanel = new JPanel();
         detailPanel.setBackground(new Color(34, 32, 37));
         detailPanel.setBorder(new LineBorder(Color.DARK_GRAY));
-        detailPanel.setBounds(260+190, 5, 320, 490);
+        detailPanel.setBounds(450, 5, 320, 490);
         detailPanel.setLayout(null);
         this.add(detailPanel);
+        JLabel label = new JLabel(LoadString.strGet("<세부 장비 옵션>"));
+        label.setFont(mapFont.get("bold"));
+        label.setForeground(Color.WHITE);
+        label.setBounds(0, 0, 320, 30);
+        label.setHorizontalAlignment(JLabel.CENTER);
+        detailPanel.add(label);
+        JPanel guide = new JPanel();
+        guide.setBackground(Color.DARK_GRAY);
+        guide.setBounds(0, 30, 320, 2);
+        detailPanel.add(guide);
+        JPanel guide2 = new JPanel();
+        guide2.setBackground(Color.DARK_GRAY);
+        guide2.setBounds(160, 30, 1, 460);
+        detailPanel.add(guide2);
+
+        for(int i=0;i<tagLayout.length;i++){
+            int[] position = {7, 35+i*20};
+            if(i > 21){
+                position[0] = 165;
+                position[1] -= 22*20;
+            }
+            JLabel nowLabel = new JLabel(LoadString.strGet(tagLayout[i]));
+            nowLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+            nowLabel.setForeground(new Color(127, 116, 87));
+            nowLabel.setBounds(position[0], position[1], 70, 20);
+            nowLabel.setHorizontalAlignment(JLabel.LEFT);
+            detailPanel.add(nowLabel);
+
+            JLabel nowLabel2 = new JLabel();
+            nowLabel2.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+            nowLabel2.setForeground(new Color(74, 162, 86));
+            nowLabel2.setBounds(position[0]+75, position[1], 70, 20);
+            nowLabel2.setHorizontalAlignment(JLabel.RIGHT);
+            detailPanel.add(nowLabel2);
+            mapDetailLabel.put(tagLayout[i], nowLabel2);
+        }
     }
 
     JLabel nowLabelWithDamage;

@@ -294,6 +294,7 @@ public class WindowCustomOption extends JFrame {
                 damage.getArrayTotalCoolDown(),
                 damage.getArrayTotalLevelDamageWithCool()
         );
+        panelResult.setDetailMap(damage.getDetailMap());
     }
     HashMap<String, String> mapResultBuff;
 

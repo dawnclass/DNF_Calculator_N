@@ -218,6 +218,7 @@ public class PanelCustom extends JPanel {
                 damage.getArrayTotalCoolDown(),
                 damage.getArrayTotalLevelDamageWithCool()
         );
+        panelResult.setDetailMap(damage.getDetailMap());
     }
 
 }

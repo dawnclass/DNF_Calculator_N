@@ -119,6 +119,7 @@ public class PanelCondition extends JPanel {
                             damage.getArrayTotalCoolDown(),
                             damage.getArrayTotalLevelDamageWithCool()
                     );
+                    panelResult.setDetailMap(damage.getDetailMap());
                 });
                 this.add(nowCheck);
                 widgetToggle.put(key, nowCheck);
@@ -159,6 +160,7 @@ public class PanelCondition extends JPanel {
                                 damage.getArrayTotalCoolDown(),
                                 damage.getArrayTotalLevelDamageWithCool()
                         );
+                        panelResult.setDetailMap(damage.getDetailMap());
                     }
                 });
                 this.add(nowCombo);

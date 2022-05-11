@@ -1,5 +1,6 @@
 package org.dnf_calc_n.calculate
 
+import com.sun.xml.internal.fastinfoset.util.StringArray
 import org.dnf_calc_n.Common
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
@@ -8,6 +9,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.math.pow
+import kotlin.math.round
 
 class Damage(private var equipmentData: JSONObject, private var customData: JSONObject) {
 
@@ -72,6 +74,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         listArrayElementResistCondition.clear()
         statusDamageCondition.clear()
         totalDamageCondition = 0.0
+        mapConditionSimpleSum.clear()
         totalMpConsumptionIncrease = 0.0
         additionalStat = 0.0
     }
@@ -323,9 +326,6 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         "HP MAX", "MP MAX", "HP젠", "MP젠", "물방", "마방", "피감", "MP소모량", "HP회복", "MP회복",
         "단리옵", "스탯", "공격력"
     )
-    private val elementKey = arrayOf(
-        "화 속성강화", "수 속성강화", "명 속성강화", "암 속성강화"
-    )
 
     private val statusTrans = HashMap<String, Double>()  // 상변전환
     private val statusTotalDamage = HashMap<String, Double>()  // 상변피증
@@ -425,6 +425,11 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         }else if(upType=="마나소모량"){
             applyType = "마나소모량"
             parsedUpValue = upValue
+        }else if(upType=="크확" || upType=="방어력" || upType=="방어력%" || upType=="HP MAX" || upType=="MP MAX"
+            || upType=="HP MAX%" || upType=="MP MAX%" || upType=="적중률" || upType=="회피율"
+        ){
+            applyType = upType
+            parsedUpValue = upValue
         }else if(upType.contains("내성")){
             applyType = "상변내성"
             parsedUpValue = JSONArray()
@@ -473,33 +478,38 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
             // 레벨 쿨감 스증 쿨회복 피해증가
             try{
                 when (applyType) {
-                    "피해증가" -> {
-                        totalDamage += (parsedUpValue ?: 0.0) as Double
+                    "크확" -> {
+                        simpleSumOptions["물크"] = ((simpleSumOptions["물크"] ?: 0.0) + (parsedUpValue ?: 0.0) as Double)
+                        simpleSumOptions["마크"] = ((simpleSumOptions["마크"] ?: 0.0) + (parsedUpValue ?: 0.0) as Double)
                     }
-                    "마나소모량" -> {
-                        totalMpConsumptionIncrease += (parsedUpValue ?: 0.0) as Double
+                    "방어력" -> {
+                        simpleSumOptions["물방"] = ((simpleSumOptions["물방"] ?: 0.0) + (parsedUpValue ?: 0.0) as Double)
+                        simpleSumOptions["마방"] = ((simpleSumOptions["마방"] ?: 0.0) + (parsedUpValue ?: 0.0) as Double)
                     }
-                    "상변내성" -> {
-                        listArrayStatusResist.add(parsedUpValue as JSONArray)
+                    "적중률" -> simpleSumOptions["적중"] = ((simpleSumOptions["적중"] ?: 0.0) + (parsedUpValue ?: 0.0) as Double)
+                    "회피율" -> simpleSumOptions["회피"] = ((simpleSumOptions["회피"] ?: 0.0) + (parsedUpValue ?: 0.0) as Double)
+                    "HP MAX", "MP MAX" -> {
+                        simpleSumOptions[applyType] = ((simpleSumOptions[applyType] ?: 0.0)
+                                + (parsedUpValue ?: 0.0) as Double)
                     }
-                    "레벨" -> {
-                        listArrayLeveling.add(parsedUpValue as JSONArray)
+                    "HP MAX%", "MP MAX%", "방어력%" -> {
+                        simpleSumOptions[applyType] = (
+                                (1+(simpleSumOptions[applyType] ?: 0.0))*(1+(parsedUpValue ?: 0.0) as Double)-1.0
+                                )
                     }
-                    "액티브레벨" -> {
-                        listArrayActiveLeveling.add(parsedUpValue as JSONArray)
+                    "속성저항" -> {
+                        simpleSumOptions["높은 속성저항"] = (
+                                (simpleSumOptions["높은 속성저항"] ?: 0.0) + (parsedUpValue as JSONArray)[4] as Double)
                     }
-                    "쿨회복" -> {
-                        listArrayCoolRecover.add(parsedUpValue as JSONArray)
-                    }
-                    "쿨감" -> {
-                        listArrayCoolDown.add(parsedUpValue as JSONArray)
-                    }
-                    "스증" -> {
-                        listArraySkillDamage.add(parsedUpValue as JSONArray)
-                    }
-                    "속도" -> {
-                        listArraySpeed.add(parsedUpValue as JSONArray)
-                    }
+                    "피해증가" -> totalDamage += (parsedUpValue ?: 0.0) as Double
+                    "마나소모량" -> totalMpConsumptionIncrease += (parsedUpValue ?: 0.0) as Double
+                    "상변내성" -> listArrayStatusResist.add(parsedUpValue as JSONArray)
+                    "레벨" -> listArrayLeveling.add(parsedUpValue as JSONArray)
+                    "액티브레벨" -> listArrayActiveLeveling.add(parsedUpValue as JSONArray)
+                    "쿨회복" -> listArrayCoolRecover.add(parsedUpValue as JSONArray)
+                    "쿨감" -> listArrayCoolDown.add(parsedUpValue as JSONArray)
+                    "스증" -> listArraySkillDamage.add(parsedUpValue as JSONArray)
+                    "속도" -> listArraySpeed.add(parsedUpValue as JSONArray)
                 }
             }catch (ignored: Exception){}
         }else{
@@ -667,7 +677,17 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         }
 
         for(nowJson in onConditionJsonList){
-            when(nowJson["applyType"] as String){
+            val applyType = nowJson["applyType"] as String
+            when (applyType) {
+                "크확", "방어력", "HP MAX", "MP MAX", "회피율", "적중률" -> {
+                    mapConditionSimpleSum[applyType] = ((mapConditionSimpleSum[applyType] ?: 0.0)
+                            + (nowJson["apply"] as Double))
+                }
+                "HP MAX%", "MP MAX%", "방어력%" -> {
+                    mapConditionSimpleSum[applyType] = (
+                            (1+(mapConditionSimpleSum[applyType] ?: 0.0))*(1+(nowJson["apply"] as Double))-1.0
+                            )
+                }
                 "피해증가" -> totalDamageCondition += nowJson["apply"] as Double
                 "마나소모량" -> totalMpConsumptionIncrease += nowJson["apply"] as Double
                 "속성강화" -> listArrayElementCondition.add(nowJson["apply"] as JSONArray)
@@ -691,6 +711,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
 
     private var totalDamageCondition = 0.0
     private var totalMpConsumptionIncrease = 0.0
+    private var mapConditionSimpleSum = HashMap<String, Double>()
     private val listArraySpeedCondition = ArrayList<JSONArray>()
     private val listArrayLevelingCondition = ArrayList<JSONArray>()
     private val listArrayStatusResistCondition = ArrayList<JSONArray>()
@@ -776,7 +797,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         //println(jsonConditionGauge.toJSONString())
 
         for(now in listArrayElement + listArrayElementCondition){
-            for(i in now.indices) arrayElement[i] += (now[i] as Double) + now[0] as Double
+            for(i in now.indices) arrayElement[i] += (now[i] as Double)
         }
         for(now in listArrayElementResistCondition){
             mapSimpleOption["화 속성저항"] = (mapSimpleOption["화 속성저항"] ?: 0.0) + now[0] as Double
@@ -797,7 +818,12 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         for(now in listArrayCoolRecover+ listArrayCoolRecoverCondition){
             for(i in now.indices) arrayCoolRecover[i] += (now[i] as Double)
         }
+        var conditionSkillDamageWithAll = 1.0
         for(now in listArraySkillDamage + listArraySkillDamageCondition){
+            if(!now.contains(0.0)){
+                // println("0을 포함하지 않은 스증 리스트 = $now")
+                conditionSkillDamageWithAll *= (1+(now[0] as Double))
+            }
             for(i in now.indices) arraySkillDamage[i] *= (1+(now[i] as Double))
         }
         for(now in listArraySpeed + listArraySpeedCondition){
@@ -809,6 +835,12 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
             for(i in now.indices){
                 val key = damageCondition.getStatusIndex(i)
                 mapStatusResist[key] = (mapStatusResist[key] ?: 0.0) + (now[i] as Double)
+            }
+        }
+        if(mapStatusResist["모든"] != null){
+            for(i in 0..12){
+                val key = damageCondition.getStatusIndex(i)
+                mapStatusResist[key] = (mapStatusResist[key] ?: 0.0) + mapStatusResist["모든"]!!
             }
         }
         // println("arraySkillDamage: "+arraySkillDamage.contentToString())
@@ -933,18 +965,56 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
                 mapSimpleOption["암 속성저항"] = (mapSimpleOption["암 속성저항"] ?: 0.0) + 25.0
             }
         }
+        val elementResistArray = arrayOf(
+            mapSimpleOption["화 속성저항"] ?: 0.0, mapSimpleOption["수 속성저항"] ?: 0.0,
+            mapSimpleOption["명 속성저항"] ?: 0.0, mapSimpleOption["암 속성저항"] ?: 0.0
+        )
         var maxElement = 0.0
+        var maxElementResist = 0.0
+        var maxElementIndex = 0
+        var maxElementIndexResist = 0
         var minElement = 9999.0
         for(i in 0 until 4){
             val nowElement = elementArray[i]
+            val nowElementResist = elementResistArray[i]
             if(nowElement > maxElement){
                 maxElement = nowElement
+                maxElementIndex = i
             }
-            if(nowElement < minElement){
-                minElement = nowElement
+            if(nowElementResist > maxElementResist){
+                maxElementResist = nowElementResist
+                maxElementIndexResist = i
             }
         }
+        maxElementResist += (mapSimpleOption["높은 속성저항"] ?: 0.0)
+        mapSimpleOption[when(maxElementIndexResist){
+            0 -> "화"
+            1 -> "수"
+            2 -> "명"
+            3 -> "암"
+            else -> "화"
+        }+" 속성저항"]=maxElementResist
         maxElement += arrayElement[4]
+        elementArray[maxElementIndex] = maxElement
+        // println("elementArray = ${elementArray.contentToString()}")
+        detailMap["화속성강화"] = elementArray[0].toInt().toString()
+        detailMap["수속성강화"] = elementArray[1].toInt().toString()
+        detailMap["명속성강화"] = elementArray[2].toInt().toString()
+        detailMap["암속성강화"] = elementArray[3].toInt().toString()
+
+        if(arrayCustomOption.contains("242")){
+            if(elementArray[0]+elementArray[1]+elementArray[2]+elementArray[3] >= 850){
+                mapSimpleOption["이속"] = (mapSimpleOption["이속"] ?: 0.0) + 0.4
+            }
+        }
+        if(arrayCustomOption.contains("244")){
+            if(elementArray[0]+elementArray[1]+elementArray[2]+elementArray[3] >= 850){
+                for(k in arrayOf("출혈", "중독", "감전", "화상",
+                    "빙결", "둔화", "기절", "저주", "암흑", "석화", "수면", "혼란", "구속")){
+                    mapStatusResist[k] = (mapStatusResist[k] ?: 0.0) + 0.3
+                }
+            }
+        }
         if(arrayEquipment.contains("22232")){  // 아토믹 코어 네클레스
             var upCoolRecover = (maxElement/50.0).toInt() * 0.04
             if(upCoolRecover > 0.24) upCoolRecover = 0.24
@@ -973,14 +1043,16 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         val atk = (((simpleSumOptions["공격력"] ?: 0.0)+customStat[1]) + applyAtk) / applyAtk
 
         val damage100 = (simpleSumOptions["단리옵"] ?: 0.0) + titlePetPercent + 1
-        val damage105 = (totalSumDamage * optionLevel / 1000.0) * (1+titlePetPercent)
+        val damage105 = (totalSumDamage * optionLevel  * (1+titlePetPercent) / 1000.0)
+        detailMap["피해증가"] = "${totalSumDamage.toInt()}*${(((optionLevel * (1+titlePetPercent))*10).toInt()/10.0)}"
 
         // 특수 옵션 작성 ///////////////////////////////////////////////////////////////////////////////////////////////
         var mpOverSkillDamage = if(arrayEquipment.contains("15172")){  // 천재신발 마나 소모량 스증 전환
             ((simpleSumOptions["MP소모량"] ?: 0.0) + totalMpConsumptionIncrease) * 0.05 + 1
         }else{1.0}
         if(mpOverSkillDamage > 1.25) mpOverSkillDamage = 1.25
-        println("mpOverSkillDamage = $mpOverSkillDamage")
+        detailMap["마나소모량"] = "${round(((simpleSumOptions["MP소모량"] ?: 0.0) + totalMpConsumptionIncrease)*100).toInt()}%"
+        // println("mpOverSkillDamage = $mpOverSkillDamage")
 
         if(arrayEquipment.contains("11232")){  // 컨퓨즈드 상의
             var totalStatusResist = 0.0
@@ -1008,10 +1080,13 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
 
         val mythOptionLevelDamage = if(isMythExist){1.0}else{optionMythLevel} // 노신화 보정 스증
         val not100OptionLevelDamage = if(is100Exist){1.0}else{optionNot100Level}
-        println("mythOptionLevelDamage = $mythOptionLevelDamage")
+        // println("mythOptionLevelDamage = $mythOptionLevelDamage")
 
         val totalSkillDamage = (skillDamage * mpOverSkillDamage * mythOptionLevelDamage *
                 not100OptionLevelDamage * cyberSkillDamage * elementMaxSkillDamage)
+
+        detailMap["스킬공격력"] = "${round((totalSkillDamage*conditionSkillDamageWithAll-1)*1000)/10.0}%"
+
         var sumDamage = ((damage100 + damage105) * totalSkillDamage * stat * atk *
                 (1.05 + 0.0045 * maxElement) * passiveDamage
                 )
@@ -1022,9 +1097,11 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         statusTrans.forEach { (key, value) ->
             transRatio += value
             val nowRatio = value * (1 + (statusDamage[key] ?: 0.0) + (statusDamageCondition[key] ?: 0.0))
-            println("statusDamage[key] = ${statusDamage[key]}")
-            println("statusDamageCondition[key] = ${statusDamageCondition[key]}")
-            println("상변: $key 의 비율 = $nowRatio")
+            detailMap["${key}전환"] = "${round(value*100).toInt()}%"
+            detailMap["${key}뎀증"] = "${round(((statusDamage[key] ?: 0.0) + (statusDamageCondition[key] ?: 0.0))*100).toInt()}%"
+            // println("statusDamage[key] = ${statusDamage[key]}")
+            // println("statusDamageCondition[key] = ${statusDamageCondition[key]}")
+            // println("상변: $key 의 비율 = $nowRatio")
             totalDamageRatio += nowRatio
             statusDamageMap[key] = sumDamage * nowRatio
         }
@@ -1033,8 +1110,8 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         // println("상변 적용 전 sumDamage: $sumDamage")
         sumDamage *= totalDamageRatio
 
-        println("총 피증: $totalSumDamage")
-        println("sumDamage: $sumDamage")
+        // println("총 피증: $totalSumDamage")
+        // println("sumDamage: $sumDamage")
 
         arrayTotalLevelDamage = Array<Double>(19){0.0}
         arrayTotalLevelDamageWithCool = Array<Double>(19){0.0}
@@ -1061,17 +1138,47 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
             arrayTotalLevelDamageWithCool[i] = arrayTotalLevelDamage[i] * (coolRealEff * 0.5 + 1.0)
         }
 
-        println("arrayTotalLevelDamage: ${arrayTotalLevelDamage.contentToString()}")
-        println("arrayTotalCoolDown: ${arrayTotalCoolDown.contentToString()}")
-        println("arrayTotalLevelDamageWithCool: ${arrayTotalLevelDamageWithCool.contentToString()}")
+        // println("arrayTotalLevelDamage: ${arrayTotalLevelDamage.contentToString()}")
+        // println("arrayTotalCoolDown: ${arrayTotalCoolDown.contentToString()}")
+        // println("arrayTotalLevelDamageWithCool: ${arrayTotalLevelDamageWithCool.contentToString()}")
 
+        setDetailMap()
     }
 
     var detailMap = HashMap<String, String>()
     private fun setDetailMap(){
-        detailMap["화속성저항"] = "+"+(mapSimpleOption["화 속성저항"] ?: 0.0).toInt()
-        detailMap["수속성저항"] = "+"+(mapSimpleOption["수 속성저항"] ?: 0.0).toInt()
-        detailMap["명속성저항"] = "+"+(mapSimpleOption["명 속성저항"] ?: 0.0).toInt()
-        detailMap["암속성저항"] = "+"+(mapSimpleOption["암 속성저항"] ?: 0.0).toInt()
+        detailMap["화속성저항"] = (mapSimpleOption["화 속성저항"] ?: 0.0).toInt().toString()
+        detailMap["수속성저항"] = (mapSimpleOption["수 속성저항"] ?: 0.0).toInt().toString()
+        detailMap["명속성저항"] = (mapSimpleOption["명 속성저항"] ?: 0.0).toInt().toString()
+        detailMap["암속성저항"] = (mapSimpleOption["암 속성저항"] ?: 0.0).toInt().toString()
+
+        detailMap["공격속도"] = "${round((mapSimpleOption["공속"] ?: 0.0)*1000)/10.0}%"
+        detailMap["캐스팅속도"] = "${round((mapSimpleOption["캐속"] ?: 0.0)*1000)/10.0}%"
+        detailMap["이동속도"] = "${round((mapSimpleOption["이속"] ?: 0.0)*1000)/10.0}%"
+
+        detailMap["크리티컬"] = "${round(((mapSimpleOption["물크"] ?: 0.0)+(mapConditionSimpleSum["크확"] ?: 0.0))*1000)/10.0}%"
+        detailMap["물리방어력"] = "${((mapSimpleOption["물방"] ?: 0.0)+(mapConditionSimpleSum["방어력"] ?: 0.0)).toInt()}"
+        detailMap["마법방어력"] = "${((mapSimpleOption["마방"] ?: 0.0)+(mapConditionSimpleSum["방어력"] ?: 0.0)).toInt()}"
+        detailMap["회피율"] = "${round(((mapSimpleOption["회피"] ?: 0.0)+(mapConditionSimpleSum["회피율"] ?: 0.0))*1000)/10.0}%"
+        detailMap["적중률"] = "${round(((mapSimpleOption["적중"] ?: 0.0)+(mapConditionSimpleSum["적중률"] ?: 0.0))*1000)/10.0}%"
+        detailMap["HP회복량"] = "${(mapSimpleOption["HP젠"] ?: 0.0).toInt()}"
+        detailMap["MP회복량"] = "${(mapSimpleOption["MP젠"] ?: 0.0).toInt()}"
+        detailMap["HP MAX"] = "${((mapSimpleOption["HP MAX"] ?: 0.0)+(mapConditionSimpleSum["HP MAX"] ?: 0.0)).toInt()}"
+        detailMap["MP MAX"] = "${((mapSimpleOption["MP MAX"] ?: 0.0)+(mapConditionSimpleSum["MP MAX"] ?: 0.0)).toInt()}"
+
+        mapStatusResist.forEach { (t, v) ->
+            // println(t + " = " + v)
+            detailMap[t+"내성"] = "${round(v*1000)/10.0}%"
+        }
+
+        for(k in arrayOf("출혈", "중독", "감전", "화상")){
+            if(detailMap[k+"전환"] == null) detailMap[k+"전환"] = "0%"
+            if(detailMap[k+"뎀증"] == null) detailMap[k+"뎀증"] = "0%"
+            if(detailMap[k+"내성"] == null) detailMap[k+"내성"] = "0.0%"
+        }
+
+        for(k in arrayOf("빙결", "둔화", "기절", "저주", "암흑", "석화", "수면", "혼란", "구속")){
+            if(detailMap[k+"내성"] == null) detailMap[k+"내성"] = "0.0%"
+        }
     }
 }

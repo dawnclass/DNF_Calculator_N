@@ -17,7 +17,7 @@
     {"tag": "enchantAccessory", "text": "악세마부", "position": [0, 4], "values": [
       "화명 35", "화명 30", "화명 26", "수암 35", "수암 30", "수암 26", "모속 33", "모속 28", "모속 25", "모속 23"]},
     {"tag": "enchantSub", "text": "보장마부", "position": [0, 5], "values": [
-      "공 100", "공 70"]},
+      "공 110", "공 100", "공 70"]},
     {"tag": "enchantMagic", "text": "법석마부", "position": [0, 6], "values": [
       "모속 30", "모속 25", "모속 20", "모속 18"]},
     {"tag": "enchantEarring", "text": "귀걸마부", "position": [0, 7], "values": [
@@ -40,7 +40,7 @@
     {"tag": "enchantBuffSub", "text": "보장마부", "position": [2, 3], "values": [
       "스탯 100", "스탯 80", "스탯 65"]},
     {"tag": "enchantBuffMagic", "text": "법석마부", "position": [2, 4], "values": [
-      "스탯 80", "스탯 60", "스탯 45"]},
+      "스탯 100", "스탯 80", "스탯 60", "스탯 45"]},
     {"tag": "enchantBuffEarring", "text": "귀걸마부", "position": [2, 5], "values": [
       "스탯 150", "스탯 125", "스탯 100"]},
     {"tag": "buffAmp", "text": "증폭수준", "position": [3, 3], "values": [
