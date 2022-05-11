@@ -979,7 +979,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
             mapSimpleOption["명 속성저항"] ?: 0.0, mapSimpleOption["암 속성저항"] ?: 0.0
         )
         var maxElement = 0.0
-        var maxElementResist = 0.0
+        var maxElementResist = -100.0
         var maxElementIndex = 0
         var maxElementIndexResist = 0
         var minElement = 9999.0
