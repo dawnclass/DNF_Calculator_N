@@ -1,6 +1,7 @@
 {
   "textField": [
     {"tag": "elementExtra", "text": "기타모속강", "position": [1, 2]},
+    {"tag": "atkSpeedExtra", "text": "기타공속", "position": [1, 4]},
     {"tag": "buffLvBless", "text": "축레벨+", "position": [3, 0]},
     {"tag": "buffLvCrux", "text": "1각레벨+", "position": [3, 1]},
     {"tag": "buffExtraStat", "text": "기타스탯", "position": [3, 2]}

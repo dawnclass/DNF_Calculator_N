@@ -5,6 +5,7 @@ import org.dnf_calc_n.Common
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
 import java.lang.IndexOutOfBoundsException
+import java.lang.NumberFormatException
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -79,8 +80,10 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         additionalStat = 0.0
     }
 
+
     private lateinit var jobPassiveArray: JSONArray
     private lateinit var jsonSave: JSONObject
+    private var extraAtkSpeed = 0.0
 
     fun startDamageCalculate(mapEquipment: HashMap<String,String>) : Boolean {
         resetData()
@@ -89,6 +92,11 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         println("선택한 직업 = $job")
         if(job == "프리스트(여) 크루세이더" || job =="마법사(여) 인챈트리스"){
             isBuffer = true
+        }
+        extraAtkSpeed = try{
+            (((jsonSave["atkSpeedExtra"] ?: "20") as String).toDouble())/100.0
+        }catch (e: NumberFormatException){
+            0.0
         }
         val optionLevelString = (jsonSave["optionLv"] ?: "60") as String
         optionLevel = when(optionLevelString){
@@ -826,6 +834,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
             }
             for(i in now.indices) arraySkillDamage[i] *= (1+(now[i] as Double))
         }
+        mapSimpleOption["공속"] = (mapSimpleOption["공속"] ?: 0.0) + extraAtkSpeed
         for(now in listArraySpeed + listArraySpeedCondition){
             mapSimpleOption["공속"] = (mapSimpleOption["공속"] ?: 0.0) + now[0] as Double
             mapSimpleOption["캐속"] = (mapSimpleOption["캐속"] ?: 0.0) + now[1] as Double
