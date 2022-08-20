@@ -1,6 +1,5 @@
 package org.dnf_calc_n.calculate
 
-import com.sun.xml.internal.fastinfoset.util.StringArray
 import org.dnf_calc_n.Common
 import org.json.simple.JSONArray
 import org.json.simple.JSONObject
@@ -893,7 +892,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         elementArray[2] += (simpleSumOptions["명 속성강화"] ?: 0.0) + arrayElement[2] + customElement[2]
         elementArray[3] += (simpleSumOptions["암 속성강화"] ?: 0.0) + arrayElement[3] + customElement[3]
         if(arrayEquipment.contains("33142")){  // 귀걸이 타속강 4종 시리즈
-            var upElement = (elementArray[1] / 8).toInt().toDouble()
+            var upElement = (elementArray[1] / 6).toInt().toDouble()
             if(upElement > 50.0) upElement = 50.0
             elementArray[0] += upElement
             elementArray[2] += upElement
@@ -908,7 +907,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
                 mapSimpleOption["마크"] = (mapSimpleOption["마크"] ?: 0.0) + 0.15
             }
         }else if(arrayEquipment.contains("33042")){  // 귀걸이 타속강 4종 시리즈
-            var upElement = (elementArray[0] / 8).toInt().toDouble()
+            var upElement = (elementArray[0] / 6).toInt().toDouble()
             if(upElement > 50.0) upElement = 50.0
             elementArray[1] += upElement
             elementArray[2] += upElement
@@ -923,7 +922,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
                 mapSimpleOption["마크"] = (mapSimpleOption["마크"] ?: 0.0) + 0.15
             }
         }else if(arrayEquipment.contains("33152")){  // 귀걸이 타속강 4종 시리즈
-            var upElement = (elementArray[3] / 8).toInt().toDouble()
+            var upElement = (elementArray[3] / 6).toInt().toDouble()
             if(upElement > 50.0) upElement = 50.0
             elementArray[0] += upElement
             elementArray[1] += upElement
@@ -938,7 +937,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
                 mapSimpleOption["마크"] = (mapSimpleOption["마크"] ?: 0.0) + 0.15
             }
         }else if(arrayEquipment.contains("33082")){  // 귀걸이 타속강 4종 시리즈
-            var upElement = (elementArray[2] / 8).toInt().toDouble()
+            var upElement = (elementArray[2] / 6).toInt().toDouble()
             if(upElement > 50.0) upElement = 50.0
             elementArray[0] += upElement
             elementArray[1] += upElement
@@ -953,17 +952,30 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
                 mapSimpleOption["마크"] = (mapSimpleOption["마크"] ?: 0.0) + 0.15
             }
         }
+        var naturalSkillDamage = 1.0
         if(arrayEquipment.contains("11152")) {  // 자수 시리즈
-            if(elementArray[0] > 250.0) mapSimpleOption["화 속성저항"] = (mapSimpleOption["화 속성저항"] ?: 0.0) + 20.0
+            if(elementArray[0] > 250.0) {
+                mapSimpleOption["화 속성저항"] = (mapSimpleOption["화 속성저항"] ?: 0.0) + 20.0
+                naturalSkillDamage *= 1.02
+            }
         }
         if(arrayEquipment.contains("13152")) {  // 자수 시리즈
-            if(elementArray[1] > 250.0) mapSimpleOption["수 속성저항"] = (mapSimpleOption["수 속성저항"] ?: 0.0) + 20.0
+            if(elementArray[1] > 250.0) {
+                mapSimpleOption["수 속성저항"] = (mapSimpleOption["수 속성저항"] ?: 0.0) + 20.0
+                naturalSkillDamage *= 1.02
+            }
         }
         if(arrayEquipment.contains("14152")) {  // 자수 시리즈
-            if(elementArray[2] > 250.0) mapSimpleOption["명 속성저항"] = (mapSimpleOption["명 속성저항"] ?: 0.0) + 20.0
+            if(elementArray[2] > 250.0) {
+                mapSimpleOption["명 속성저항"] = (mapSimpleOption["명 속성저항"] ?: 0.0) + 20.0
+                naturalSkillDamage *= 1.02
+            }
         }
         if(arrayEquipment.contains("15152")) {  // 자수 시리즈
-            if(elementArray[3] > 250.0) mapSimpleOption["암 속성저항"] = (mapSimpleOption["암 속성저항"] ?: 0.0) + 20.0
+            if(elementArray[3] > 250.0) {
+                mapSimpleOption["암 속성저항"] = (mapSimpleOption["암 속성저항"] ?: 0.0) + 20.0
+                naturalSkillDamage *= 1.02
+            }
         }
         if(arrayEquipment.contains("11182")){  // 드래곤 슬레이어 상의
             if(elementArray[0] == elementArray[1]
@@ -972,6 +984,11 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
                 mapSimpleOption["수 속성저항"] = (mapSimpleOption["수 속성저항"] ?: 0.0) + 25.0
                 mapSimpleOption["명 속성저항"] = (mapSimpleOption["명 속성저항"] ?: 0.0) + 25.0
                 mapSimpleOption["암 속성저항"] = (mapSimpleOption["암 속성저항"] ?: 0.0) + 25.0
+                elementArray[0] += 15.0
+                elementArray[1] += 15.0
+                elementArray[2] += 15.0
+                elementArray[3] += 15.0
+                totalSumDamage += 1186.0
             }
         }
         val elementResistArray = arrayOf(
@@ -1092,7 +1109,7 @@ class Damage(private var equipmentData: JSONObject, private var customData: JSON
         // println("mythOptionLevelDamage = $mythOptionLevelDamage")
 
         val totalSkillDamage = (skillDamage * mpOverSkillDamage * mythOptionLevelDamage *
-                not100OptionLevelDamage * cyberSkillDamage * elementMaxSkillDamage)
+                not100OptionLevelDamage * cyberSkillDamage * elementMaxSkillDamage * naturalSkillDamage)
 
         detailMap["스킬공격력"] = "${round((totalSkillDamage*conditionSkillDamageWithAll-1)*1000)/10.0}%"
 
